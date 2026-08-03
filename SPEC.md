@@ -107,6 +107,21 @@ APP DTUs/
         └── detalleDTU.js
 ```
 
+## 10. Rediseño de layout (corrección de spec sobre la marcha)
+
+La realidad enseñó algo: el layout "header + sidebar + tabla" ya se usó en
+8Ds y URBA — para esta app se decide un layout distinto, justificado por
+el dominio (esto es un sistema de programación por día/semana):
+
+- **Sin sidebar.** Barra superior compacta: logo a la izquierda, navegador
+  de semana Vidusa al centro (◀ semana ▶), usuario/rol/Salir a la derecha.
+- **Tablero semanal como vista principal** (reemplaza la tabla plana):
+  columnas Lunes–Sábado, tarjetas de DTU dentro de cada día, para la
+  semana Vidusa seleccionada. Hace visibles los empalmes de un vistazo.
+- **Detalle y Nueva Solicitud como panel lateral deslizante (drawer)**,
+  no como páginas/secciones separadas de un sidebar.
+- Paleta, tipografía y video de login (sección 9) se mantienen sin cambio.
+
 ## 9. Identidad visual
 
 Paleta oficial VIDUSA (Pantone): `#28534E` (330C, verde profundo), `#5AC55C`
