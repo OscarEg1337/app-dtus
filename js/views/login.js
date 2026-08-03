@@ -11,9 +11,10 @@ function renderLogin() {
       <div class="login-card">
         <div class="login-card__top"></div>
         <div class="login-card__body">
+          <img class="login-logo" src="assets/img/vidusa-logo.jpeg" alt="VIDUSA">
           <div class="brand-mark">VIDUSA</div>
-          <h1 class="login-title">APP DTUs</h1>
-          <p class="login-subtitle">Control de solicitudes de revisión técnica</p>
+          <h1 class="login-title">Asignación de DTUs</h1>
+          <p class="login-subtitle">Control de solicitudes de Dictamen Técnico Único</p>
 
           <form id="login-form" class="login-form">
             <div class="field">

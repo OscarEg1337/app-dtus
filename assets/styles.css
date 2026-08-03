@@ -105,6 +105,16 @@ h1, h2, h3,
   text-align: center;
 }
 
+.login-logo {
+  width: 64px;
+  height: 64px;
+  object-fit: cover;
+  border-radius: 16px;
+  background: var(--menta);
+  padding: 6px;
+  margin-bottom: 6px;
+}
+
 .brand-mark {
   font-size: 11px;
   text-transform: uppercase;
