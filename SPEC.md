@@ -82,7 +82,11 @@ APP DTUs/
 ├── README.md
 ├── package.json
 ├── assets/
-│   └── styles.css
+│   ├── styles.css
+│   ├── fonts/
+│   │   └── NewRailAlphabet-Light.otf
+│   └── video/
+│       └── login-bg.mp4
 └── js/
     ├── util.js                    — esc() y helpers compartidos
     ├── config.js                  — flags de entorno (placeholder backend futuro)
@@ -102,3 +106,13 @@ APP DTUs/
         ├── listaDTUs.js
         └── detalleDTU.js
 ```
+
+## 9. Identidad visual
+
+Paleta oficial VIDUSA (Pantone): `#28534E` (330C, verde profundo), `#5AC55C`
+(2420C, verde brillante — acento principal), `#E2F0E3` (5595C, menta pálido),
+blanco. Fondo derivado casi-negro (`#0E211D`) de la misma familia de tono
+para toda la app (no un negro genérico). Tipografía de marca: NewRail
+Alphabet (`assets/fonts/`) para títulos; sans de sistema para texto de
+tablas/formularios. Login con video de fondo (`assets/video/login-bg.mp4`)
+y velo oscuro para legibilidad.

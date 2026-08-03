@@ -1,16 +1,32 @@
+/* ── Tipografía de marca (NewRail Alphabet) ─────────────────────────── */
+@font-face {
+  font-family: 'NewRail';
+  src: url('fonts/NewRailAlphabet-Light.otf') format('opentype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ── Paleta oficial VIDUSA + derivados oscuros ──────────────────────── */
 :root {
-  --verde-profundo: #14463A;
-  --verde-medio: #1B5E4A;
-  --verde-brillante: #22C55E;
-  --fondo-claro: #EAF3EC;
+  --verde-profundo: #28534E;   /* Pantone 330C */
+  --verde-brillante: #5AC55C;  /* Pantone 2420C */
+  --menta: #E2F0E3;            /* Pantone 5595C */
   --blanco: #FFFFFF;
-  --texto: #1F2937;
-  --texto-suave: #6B7280;
-  --borde: #DDE6E1;
-  --rojo: #DC2626;
-  --rojo-fondo: #FEE2E2;
-  --amarillo: #B45309;
-  --amarillo-fondo: #FEF3C7;
+
+  --bg: #0E211D;                /* fondo, derivado oscuro del verde profundo */
+  --bg-2: #0A1815;              /* header/sidebar, un tono más oscuro */
+  --panel: #152E28;             /* tarjetas */
+  --panel-2: #1B3A32;           /* hover / paneles secundarios */
+  --borde: rgba(255, 255, 255, 0.09);
+
+  --texto: #F3FAF4;
+  --texto-suave: #9FBFB2;
+
+  --rojo: #F2777B;
+  --rojo-fondo: rgba(242, 119, 123, 0.16);
+  --amarillo: #F2B84B;
+  --amarillo-fondo: rgba(242, 184, 75, 0.16);
 }
 
 * { box-sizing: border-box; }
@@ -18,8 +34,17 @@
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  background: var(--fondo-claro);
+  background: var(--bg);
   color: var(--texto);
+}
+
+h1, h2, h3,
+.login-title,
+.app-header__title,
+.brand-mark {
+  font-family: 'NewRail', -apple-system, sans-serif;
+  font-weight: 300;
+  letter-spacing: 0.02em;
 }
 
 .cargando {
@@ -32,40 +57,70 @@ body {
 
 /* ---- Login ---- */
 .login-screen {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
   min-height: 100vh;
   padding: 24px;
+  overflow: hidden;
+}
+
+.login-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
+}
+
+.login-video-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(10, 24, 21, 0.75), rgba(10, 24, 21, 0.92));
+  z-index: 1;
 }
 
 .login-card {
+  position: relative;
+  z-index: 2;
   width: 100%;
   max-width: 380px;
-  background: var(--blanco);
+  background: rgba(21, 46, 40, 0.92);
+  backdrop-filter: blur(6px);
+  border: 1px solid var(--borde);
   border-radius: 16px;
   overflow: hidden;
-  box-shadow: 0 10px 30px rgba(20, 70, 58, 0.12);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
 }
 
 .login-card__top {
-  height: 6px;
+  height: 4px;
   background: linear-gradient(90deg, var(--verde-profundo), var(--verde-brillante));
 }
 
 .login-card__body {
-  padding: 32px 28px;
+  padding: 36px 28px;
   text-align: center;
 }
 
+.brand-mark {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  color: var(--verde-brillante);
+  margin-bottom: 10px;
+}
+
 .login-title {
-  margin: 12px 0 4px;
-  color: var(--verde-profundo);
-  font-size: 22px;
+  margin: 4px 0 4px;
+  color: var(--blanco);
+  font-size: 26px;
 }
 
 .login-subtitle {
-  margin: 0 0 24px;
+  margin: 0 0 26px;
   color: var(--texto-suave);
   font-size: 13px;
 }
@@ -78,17 +133,21 @@ body {
   display: block;
   font-size: 12px;
   font-weight: 600;
-  color: var(--verde-profundo);
+  color: var(--menta);
   margin-bottom: 6px;
 }
 
-.field input, .field select {
+.field input, .field select, .field textarea {
   width: 100%;
   padding: 10px 12px;
   border: 1px solid var(--borde);
   border-radius: 8px;
   font-size: 14px;
+  background: var(--menta);
+  color: #142420;
 }
+
+.field input::placeholder { color: #5C7267; }
 
 .login-error {
   color: var(--rojo);
@@ -99,30 +158,31 @@ body {
 
 .btn-primary {
   width: 100%;
-  padding: 11px;
+  padding: 12px;
   border: none;
   border-radius: 8px;
-  background: var(--verde-profundo);
-  color: var(--blanco);
+  background: var(--verde-brillante);
+  color: #0A1815;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
+  transition: filter 0.15s;
 }
 
-.btn-primary:hover { background: var(--verde-medio); }
+.btn-primary:hover { filter: brightness(1.08); }
 .btn-primary:disabled { opacity: 0.6; cursor: default; }
 
 .btn-secundario {
   padding: 9px 14px;
   border: 1px solid var(--borde);
   border-radius: 8px;
-  background: var(--blanco);
-  color: var(--verde-profundo);
+  background: var(--panel-2);
+  color: var(--texto);
   font-size: 13px;
   cursor: pointer;
 }
 
-.btn-secundario:hover { background: var(--fondo-claro); }
+.btn-secundario:hover { background: var(--panel); border-color: var(--verde-brillante); }
 
 .btn-borrar {
   padding: 9px 14px;
@@ -134,7 +194,7 @@ body {
   font-weight: 600;
   cursor: pointer;
 }
-.btn-borrar:hover { background: var(--rojo); color: var(--blanco); }
+.btn-borrar:hover { background: var(--rojo); color: var(--bg-2); }
 
 /* ---- App shell ---- */
 .app-shell { display: flex; flex-direction: column; min-height: 100vh; }
@@ -144,12 +204,13 @@ body {
   align-items: center;
   justify-content: space-between;
   padding: 14px 24px;
-  background: var(--verde-profundo);
+  background: var(--bg-2);
+  border-bottom: 1px solid var(--borde);
   color: var(--blanco);
 }
 
-.app-header__title { font-weight: 700; font-size: 16px; }
-.app-header__subtitle { font-size: 11px; opacity: 0.8; }
+.app-header__title { font-weight: 300; font-size: 18px; letter-spacing: 0.03em; }
+.app-header__subtitle { font-size: 11px; color: var(--texto-suave); }
 
 .app-header__right {
   display: flex;
@@ -159,7 +220,8 @@ body {
 }
 
 .badge-rol {
-  background: rgba(255,255,255,0.15);
+  background: rgba(90, 197, 92, 0.16);
+  color: var(--verde-brillante);
   padding: 3px 10px;
   border-radius: 999px;
   font-size: 11px;
@@ -169,20 +231,20 @@ body {
 
 .btn-logout {
   background: transparent;
-  border: 1px solid rgba(255,255,255,0.4);
-  color: var(--blanco);
+  border: 1px solid var(--borde);
+  color: var(--texto);
   padding: 6px 12px;
   border-radius: 8px;
   cursor: pointer;
   font-size: 13px;
 }
-.btn-logout:hover { background: rgba(255,255,255,0.15); }
+.btn-logout:hover { border-color: var(--verde-brillante); color: var(--verde-brillante); }
 
 .app-body { display: flex; flex: 1; }
 
 .app-sidebar {
   width: 200px;
-  background: var(--blanco);
+  background: var(--bg-2);
   border-right: 1px solid var(--borde);
   padding: 16px 0;
 }
@@ -191,24 +253,26 @@ body {
   padding: 12px 20px;
   font-size: 14px;
   cursor: pointer;
-  color: var(--texto);
+  color: var(--texto-suave);
 }
-.app-sidebar__item:hover { background: var(--fondo-claro); }
+.app-sidebar__item:hover { background: var(--panel); color: var(--texto); }
 .app-sidebar__item.activo {
-  background: var(--fondo-claro);
-  color: var(--verde-profundo);
+  background: var(--panel);
+  color: var(--verde-brillante);
   font-weight: 600;
-  border-left: 3px solid var(--verde-profundo);
+  border-left: 3px solid var(--verde-brillante);
 }
 
 .app-content { flex: 1; padding: 24px; }
 
 .card {
-  background: var(--blanco);
+  background: var(--panel);
+  border: 1px solid var(--borde);
   border-radius: 14px;
   padding: 22px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
 }
+
+.card h2, .card h3 { color: var(--blanco); }
 
 .card + .card { margin-top: 16px; }
 
@@ -219,6 +283,9 @@ body {
   gap: 14px;
   margin: 16px 0;
 }
+
+.form-grid .field label { color: var(--texto-suave); }
+.form-grid .field > div { color: var(--texto); padding: 8px 0; }
 
 .form-registro__acciones {
   display: flex;
@@ -244,14 +311,16 @@ body {
   text-align: left;
   position: sticky;
   top: 0;
+  font-weight: 600;
 }
 
 .tabla-dtu td {
   padding: 8px 10px;
   border-bottom: 1px solid var(--borde);
+  color: var(--texto);
 }
 
-.tabla-dtu tr:hover td { background: var(--fondo-claro); }
+.tabla-dtu tr:hover td { background: var(--panel-2); }
 
 .pill {
   display: inline-block;
@@ -260,8 +329,8 @@ body {
   font-size: 11px;
   font-weight: 600;
 }
-.pill--operativo { background: #D7F0DE; color: #14663A; }
+.pill--operativo { background: rgba(90, 197, 92, 0.18); color: var(--verde-brillante); }
 .pill--cancelado { background: var(--amarillo-fondo); color: var(--amarillo); }
-.pill--paso { background: #D7F0DE; color: #14663A; }
+.pill--paso { background: rgba(90, 197, 92, 0.18); color: var(--verde-brillante); }
 .pill--nopaso { background: var(--rojo-fondo); color: var(--rojo); }
-.pill--vacio { background: #F3F4F6; color: var(--texto-suave); }
+.pill--vacio { background: rgba(255,255,255,0.06); color: var(--texto-suave); }

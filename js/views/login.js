@@ -4,9 +4,14 @@ function renderLogin() {
   const app = document.getElementById('app');
   app.innerHTML = `
     <div class="login-screen">
+      <video class="login-video" autoplay loop muted playsinline>
+        <source src="assets/video/login-bg.mp4" type="video/mp4">
+      </video>
+      <div class="login-video-overlay"></div>
       <div class="login-card">
         <div class="login-card__top"></div>
         <div class="login-card__body">
+          <div class="brand-mark">VIDUSA</div>
           <h1 class="login-title">APP DTUs</h1>
           <p class="login-subtitle">Control de solicitudes de revisión técnica</p>
 

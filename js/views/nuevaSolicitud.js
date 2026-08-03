@@ -101,7 +101,7 @@ function renderNuevaSolicitud(session) {
     const dtu = Store.crearDTU(datos, session);
 
     resultadoEl.innerHTML = `
-      <div class="card" style="margin-top:16px;background:var(--fondo-claro)">
+      <div class="card" style="margin-top:16px;background:var(--panel-2)">
         <strong>Solicitud guardada:</strong> ${esc(dtu.folio)}<br>
         Facilitador asignado: <strong>${esc(dtu.facilitador) || 'Sin facilitador disponible'}</strong><br>
         Semana Vidusa: ${esc(dtu.semanaVidusa) || '—'}
