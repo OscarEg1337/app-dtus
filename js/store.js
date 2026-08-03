@@ -31,6 +31,20 @@ const Store = {
     return leerDTUs().find((d) => d.id === id) || null;
   },
 
+  // Alcance por rol (SPEC.md sección 3): Residente/Superintendente ven lo
+  // que ellos capturaron; Facilitador ve lo que le toca a él/ella;
+  // Admin/Analista ven todo.
+  getDTUsPorSesion(session) {
+    const dtus = leerDTUs();
+    if (session.rol === 'residente' || session.rol === 'superintendente') {
+      return dtus.filter((d) => d.creadoPor === session.correo);
+    }
+    if (session.rol === 'facilitador') {
+      return dtus.filter((d) => d.facilitador === session.nombre);
+    }
+    return dtus; // admin, analista
+  },
+
   // Residente/Superintendente crean la solicitud. El Facilitador y la
   // Semana Vidusa se calculan solos (ver SPEC.md secciones 4 y 5).
   crearDTU(datos, session) {
