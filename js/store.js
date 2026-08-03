@@ -45,6 +45,16 @@ const Store = {
     return dtus; // admin, analista
   },
 
+  // El Facilitador captura el resultado de su revisión.
+  actualizarValidacion(id, validacionAdmin, comentarios) {
+    const dtus = leerDTUs();
+    const idx = dtus.findIndex((d) => d.id === id);
+    if (idx === -1) throw new Error('DTU no encontrado.');
+    dtus[idx] = { ...dtus[idx], validacionAdmin: validacionAdmin || '', comentarios: comentarios || '' };
+    guardarDTUs(dtus);
+    return dtus[idx];
+  },
+
   // Residente/Superintendente crean la solicitud. El Facilitador y la
   // Semana Vidusa se calculan solos (ver SPEC.md secciones 4 y 5).
   crearDTU(datos, session) {
