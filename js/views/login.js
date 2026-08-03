@@ -1,0 +1,44 @@
+// login.js — pantalla de login.
+
+function renderLogin() {
+  const app = document.getElementById('app');
+  app.innerHTML = `
+    <div class="login-screen">
+      <div class="login-card">
+        <div class="login-card__top"></div>
+        <div class="login-card__body">
+          <h1 class="login-title">APP DTUs</h1>
+          <p class="login-subtitle">Control de solicitudes de revisión técnica</p>
+
+          <form id="login-form" class="login-form">
+            <div class="field">
+              <label for="login-correo">Correo</label>
+              <input id="login-correo" type="email" autocomplete="username" placeholder="usuario@test.local" required>
+            </div>
+            <div class="field">
+              <label for="login-password">Contraseña</label>
+              <input id="login-password" type="password" autocomplete="current-password" placeholder="Contraseña" required>
+            </div>
+            <p id="login-error" class="login-error"></p>
+            <button type="submit" class="btn-primary" id="login-submit">Ingresar</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('login-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const correo = document.getElementById('login-correo').value.trim();
+    const password = document.getElementById('login-password').value;
+    const errorEl = document.getElementById('login-error');
+
+    const result = Auth.login(correo, password);
+    if (!result.ok) {
+      errorEl.textContent = result.error;
+      return;
+    }
+    errorEl.textContent = '';
+    Router.goTo('dashboard');
+  });
+}
