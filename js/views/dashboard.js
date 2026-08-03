@@ -1,4 +1,6 @@
-// dashboard.js — landing tras login: header + sidebar + contenido según rol.
+// dashboard.js — barra superior compacta (sin sidebar) + navegación de
+// semana Vidusa al centro. El contenido es el tablero semanal
+// (ver tableroSemanal.js). Ver SPEC.md sección 10.
 
 const ROL_LABELS = {
   residente: 'Residente',
@@ -8,51 +10,46 @@ const ROL_LABELS = {
   analista: 'Analista',
 };
 
-function sidebarItemsPorRol(rol) {
-  const items = [{ id: 'inicio', label: 'Inicio' }];
-  if (rol === 'residente' || rol === 'superintendente') {
-    items.push({ id: 'nuevaSolicitud', label: 'Nueva Solicitud' });
-  }
-  items.push({ id: 'listaDTUs', label: 'DTUs' });
-  return items;
-}
+let semanaSeleccionada = null;
 
-function renderDashboard(seccionActiva = 'inicio') {
+function renderDashboard() {
   const session = Auth.getSession();
   if (!session) {
     Router.goTo('login');
     return;
   }
 
+  if (!semanaSeleccionada) semanaSeleccionada = SemanaVidusa.actual();
+
   const app = document.getElementById('app');
-  const items = sidebarItemsPorRol(session.rol);
+  const puedeCrear = session.rol === 'residente' || session.rol === 'superintendente';
 
   app.innerHTML = `
     <div class="app-shell">
-      <header class="app-header">
-        <div>
-          <div class="app-header__title">APP DTUs</div>
-          <div class="app-header__subtitle">Control de solicitudes de revisión técnica</div>
+      <header class="topbar">
+        <div class="topbar__marca">
+          <img src="assets/img/vidusa-logo.jpeg" alt="VIDUSA" class="topbar__logo">
+          <div>
+            <div class="app-header__title">Asignación de DTUs</div>
+            <div class="app-header__subtitle">Control de solicitudes de Dictamen Técnico Único</div>
+          </div>
         </div>
+
+        <div class="topbar__semana">
+          <button type="button" class="btn-semana" id="btn-semana-prev" aria-label="Semana anterior">←</button>
+          <span id="etiqueta-semana">${esc(SemanaVidusa.etiqueta(semanaSeleccionada))}</span>
+          <button type="button" class="btn-semana" id="btn-semana-next" aria-label="Semana siguiente">→</button>
+        </div>
+
         <div class="app-header__right">
+          ${puedeCrear ? '<button type="button" id="btn-nueva-solicitud" class="btn-primary btn-primary--inline">+ Nueva Solicitud</button>' : ''}
           <span>${esc(session.nombre)}</span>
           <span class="badge-rol">${esc(ROL_LABELS[session.rol] || session.rol)}</span>
           <button id="btn-logout" class="btn-logout">Salir</button>
         </div>
       </header>
-      <div class="app-body">
-        <nav class="app-sidebar">
-          ${items
-            .map(
-              (item) => `
-            <div class="app-sidebar__item${item.id === seccionActiva ? ' activo' : ''}" data-seccion="${item.id}">
-              ${esc(item.label)}
-            </div>`
-            )
-            .join('')}
-        </nav>
-        <main class="app-content" id="app-content"></main>
-      </div>
+
+      <main class="app-content" id="app-content"></main>
     </div>
   `;
 
@@ -61,32 +58,20 @@ function renderDashboard(seccionActiva = 'inicio') {
     Router.goTo('login');
   });
 
-  document.querySelectorAll('.app-sidebar__item').forEach((el) => {
-    el.addEventListener('click', () => {
-      renderDashboard(el.dataset.seccion);
-    });
+  document.getElementById('btn-semana-prev').addEventListener('click', () => {
+    semanaSeleccionada = SemanaVidusa.vecino(semanaSeleccionada, -1);
+    renderDashboard();
+  });
+  document.getElementById('btn-semana-next').addEventListener('click', () => {
+    semanaSeleccionada = SemanaVidusa.vecino(semanaSeleccionada, 1);
+    renderDashboard();
   });
 
-  activarSeccion(seccionActiva, session);
-}
-
-function activarSeccion(seccion, session) {
-  const contentEl = document.getElementById('app-content');
-
-  if (seccion === 'nuevaSolicitud' && typeof renderNuevaSolicitud === 'function') {
-    renderNuevaSolicitud(session);
-    return;
+  if (puedeCrear) {
+    document.getElementById('btn-nueva-solicitud').addEventListener('click', () => {
+      renderNuevaSolicitud(session, () => renderDashboard());
+    });
   }
 
-  if (seccion === 'listaDTUs' && typeof renderListaDTUs === 'function') {
-    renderListaDTUs(session);
-    return;
-  }
-
-  contentEl.innerHTML = `
-    <div class="card">
-      <h2>Bienvenido, ${esc(session.nombre)}</h2>
-      <p>Selecciona una opción del menú para comenzar.</p>
-    </div>
-  `;
+  renderTableroSemanal(session, semanaSeleccionada);
 }

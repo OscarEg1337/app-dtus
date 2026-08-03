@@ -15,3 +15,18 @@ function esc(valor) {
 function generarId(prefijo) {
   return (prefijo || 'id') + '_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8);
 }
+
+function pillEstatus(valor) {
+  if (!valor) return '<span class="pill pill--vacio">(Vacío)</span>';
+  if (valor === 'Operativo') return '<span class="pill pill--operativo">Operativo</span>';
+  if (valor === 'Cancelado') return '<span class="pill pill--cancelado">Cancelado</span>';
+  return `<span class="pill pill--vacio">${esc(valor)}</span>`;
+}
+
+function pillValidacion(valor) {
+  if (!valor) return '<span class="pill pill--vacio">(Vacío)</span>';
+  if (valor === 'Paso el DTU') return '<span class="pill pill--paso">Pasó el DTU</span>';
+  if (valor === 'No paso el DTU') return '<span class="pill pill--nopaso">No pasó el DTU</span>';
+  if (valor === 'Cancelado') return '<span class="pill pill--cancelado">Cancelado</span>';
+  return `<span class="pill pill--vacio">${esc(valor)}</span>`;
+}

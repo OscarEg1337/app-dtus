@@ -93,18 +93,19 @@ APP DTUs/
     ├── store.js                   — capa de datos sobre localStorage
     ├── auth.js                    — sesión + login contra seed de usuarios
     ├── asignacion.js              — algoritmo de reparto (sección 4)
-    ├── semanaVidusa.js            — busca semana Vidusa a partir de una fecha
+    ├── semanaVidusa.js            — busca semana Vidusa + navegación anterior/siguiente
     ├── router.js                  — decide vista según sesión/rol
     ├── seed/
     │   ├── usuarios.seed.js
     │   ├── fraccionamientos.seed.js
     │   └── semanaVidusa.seed.js
     └── views/
+        ├── drawer.js              — panel lateral deslizante genérico
         ├── login.js
-        ├── dashboard.js
-        ├── nuevaSolicitud.js
-        ├── listaDTUs.js
-        └── detalleDTU.js
+        ├── dashboard.js           — barra superior + navegación de semana
+        ├── tableroSemanal.js      — tablero Lunes–Sábado (vista principal)
+        ├── nuevaSolicitud.js      — formulario en el drawer
+        └── detalleDTU.js          — detalle + reasignación en el drawer
 ```
 
 ## 10. Rediseño de layout (corrección de spec sobre la marcha)
