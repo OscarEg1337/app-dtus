@@ -45,6 +45,17 @@ const Store = {
     return dtus; // admin, analista
   },
 
+  // Admin (Jefe/Coordinador) reasigna manualmente al Facilitador — para
+  // cuando se empalman fechas o el Facilitador tiene otras actividades.
+  reasignarFacilitador(id, nuevoFacilitador) {
+    const dtus = leerDTUs();
+    const idx = dtus.findIndex((d) => d.id === id);
+    if (idx === -1) throw new Error('DTU no encontrado.');
+    dtus[idx] = { ...dtus[idx], facilitador: nuevoFacilitador || '' };
+    guardarDTUs(dtus);
+    return dtus[idx];
+  },
+
   // El Facilitador captura el resultado de su revisión.
   actualizarValidacion(id, validacionAdmin, comentarios) {
     const dtus = leerDTUs();

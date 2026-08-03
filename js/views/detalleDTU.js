@@ -82,7 +82,45 @@ function renderDetalleDTU(id, session) {
     });
   }
 
-  if (esAdmin && typeof renderReasignacion === 'function') {
+  if (esAdmin) {
     renderReasignacion(dtu, session);
   }
+}
+
+// Admin (Jefe/Coordinador): reasigna manualmente al Facilitador entre los
+// elegibles para ese fraccionamiento (SPEC.md sección 3 y 4).
+function renderReasignacion(dtu, session) {
+  const contentEl = document.getElementById('app-content');
+  const frac = FRACCIONAMIENTOS_SEED.find(
+    (f) => f.nombre.toUpperCase() === String(dtu.fraccionamiento).toUpperCase().trim()
+  );
+  const opciones = frac ? frac.facilitadores : [];
+
+  const wrap = document.createElement('div');
+  wrap.className = 'card';
+  wrap.style.marginTop = '16px';
+  wrap.innerHTML = `
+    <h3>Reasignar Facilitador (Admin)</h3>
+    <p style="color:var(--texto-suave);font-size:13px;margin-top:-8px">
+      Facilitador actual: <strong>${esc(dtu.facilitador) || '—'}</strong>
+    </p>
+    <div class="form-grid">
+      <div class="field">
+        <label for="dt-nuevo-facilitador">Nuevo Facilitador</label>
+        <select id="dt-nuevo-facilitador">
+          ${opciones.map((f) => `<option value="${esc(f)}" ${f === dtu.facilitador ? 'selected' : ''}>${esc(f)}</option>`).join('')}
+        </select>
+      </div>
+    </div>
+    <div class="form-registro__acciones">
+      <button type="button" id="btn-reasignar" class="btn-primary" style="width:auto">Reasignar</button>
+    </div>
+  `;
+  contentEl.appendChild(wrap);
+
+  document.getElementById('btn-reasignar').addEventListener('click', () => {
+    const nuevo = document.getElementById('dt-nuevo-facilitador').value;
+    Store.reasignarFacilitador(dtu.id, nuevo);
+    renderDetalleDTU(dtu.id, session);
+  });
 }
