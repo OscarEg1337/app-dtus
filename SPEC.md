@@ -8,7 +8,7 @@ la corrección antes de seguir construyendo.
 App web que reemplaza la hoja "Llenado de DTUs": Residentes y Superintendentes
 capturan una solicitud de revisión técnica (DTU) por lote; el sistema asigna
 automáticamente al Facilitador que le toca (repartiendo carga, máximo 2 por
-persona por día, con rotación especial para ADARA/ALMENDROS); el Facilitador
+persona por día, con rotación especial 1:1 solo para ADARA); el Facilitador
 captura el resultado de su revisión (Validación + Comentarios); Jefes y
 Coordinadores (rol Admin) ven todo y pueden **reasignar manualmente** al
 Facilitador cuando haya empalmes. Analistas solo consultan.
@@ -16,16 +16,22 @@ Facilitador cuando haya empalmes. Analistas solo consultan.
 Por ahora es **local** (localStorage, sin backend) — se decide después si se
 vuelve "real" (Google Sheets + Apps Script, como 8Ds/URBA).
 
-Usuarios: **ficticios de prueba** (no se usan nombres/correos reales del
-equipo mientras el proyecto es local, para no repetir el incidente de
-credenciales expuestas de App Web URBA).
+**Catálogo real:** Fraccionamiento, Superintendente y Facilitadores ya son
+los reales del equipo (ver `js/seed/fraccionamientos.seed.js` y README.md) —
+al elegir Fraccionamiento en Nueva Solicitud, el Superintendente se
+autollena (ya no es texto libre).
+
+Usuarios (login): **ficticios de prueba** — solo el correo/contraseña son
+inventados; el *nombre* de cada Facilitador sí es el real, para que
+coincida con el catálogo (no se repite el incidente de credenciales
+expuestas de App Web URBA).
 
 ## 2. Modelo de datos — un DTU
 
 | Campo | Quién lo llena | Notas |
 |---|---|---|
-| fraccionamiento | Residente/Superintendente | de seed |
-| superintendente | Residente/Superintendente | texto |
+| fraccionamiento | Residente/Superintendente | de seed (catálogo real) |
+| superintendente | **Automático** | se autollena según el Fraccionamiento elegido |
 | cc | Residente/Superintendente | texto |
 | diaSolicitado | Residente/Superintendente | Lunes..Sábado (sin domingo) |
 | etapa | Residente/Superintendente | texto |

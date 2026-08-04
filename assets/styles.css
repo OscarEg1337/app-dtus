@@ -159,6 +159,23 @@ h1, h2, h3,
 
 .field input::placeholder { color: #5C7267; }
 
+.field input[readonly] {
+  background: var(--panel-2);
+  color: var(--texto);
+  border-style: dashed;
+  cursor: default;
+}
+
+.preview-facilitador {
+  padding: 10px 12px;
+  border: 1px dashed var(--borde);
+  border-radius: 8px;
+  background: var(--panel-2);
+  color: var(--verde-brillante);
+  font-size: 13px;
+  font-weight: 600;
+}
+
 .login-error {
   color: var(--rojo);
   font-size: 13px;

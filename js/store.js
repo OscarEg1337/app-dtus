@@ -23,6 +23,11 @@ const Store = {
     return FRACCIONAMIENTOS_SEED;
   },
 
+  getFraccionamientoPorNombre(nombre) {
+    const buscado = String(nombre || '').toUpperCase().trim();
+    return FRACCIONAMIENTOS_SEED.find((f) => f.nombre.toUpperCase() === buscado) || null;
+  },
+
   getTodosDTUs() {
     return leerDTUs();
   },

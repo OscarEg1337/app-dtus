@@ -1,6 +1,14 @@
 // asignacion.js — puerto del algoritmo de reparto de Facilitador del Apps
-// Script original (PRIORIDAD_FRENTE / MAX_DTU / rotación ADARA-ALMENDROS).
+// Script original (PRIORIDAD_FRENTE / MAX_DTU / rotación ADARA).
 // Ver SPEC.md sección 4.
+//
+// Nota de migración: el script original también trataba a ALMENDROS con
+// la misma rotación 1:1 que ADARA, pero en el diccionario real ALMENDROS
+// tiene un solo facilitador (Cesar De la Rosa) — con esa rotación,
+// `facilitadores[1]` no existe la mitad de las veces y la asignación
+// quedaría vacía. Aquí solo ADARA (2 facilitadores reales) usa la
+// rotación especial; ALMENDROS usa el reparto general, que con un único
+// facilitador simplemente se lo asigna siempre a él.
 
 const MAX_DTU_POR_FACILITADOR = 2;
 
@@ -14,8 +22,8 @@ const Asignacion = {
 
     const facilitadores = frac.facilitadores;
 
-    // Rotación estricta 1:1 para ADARA y ALMENDROS.
-    if (nombreFrac === 'ADARA' || nombreFrac === 'ALMENDROS') {
+    // Rotación estricta 1:1, solo para ADARA (2 facilitadores reales).
+    if (nombreFrac === 'ADARA') {
       const conteo = dtusExistentes.filter(
         (d) => String(d.fraccionamiento || '').toUpperCase().trim() === nombreFrac
       ).length;
