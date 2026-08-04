@@ -84,6 +84,18 @@ const Store = {
     return dtus; // admin, analista
   },
 
+  // Solo Admin puede borrar un DTU (por error de captura irrecuperable,
+  // duplicado, etc.) — queda registrado en la Bitácora.
+  eliminarDTU(id, session) {
+    const dtus = leerDTUs();
+    const idx = dtus.findIndex((d) => d.id === id);
+    if (idx === -1) throw new Error('DTU no encontrado.');
+    const [eliminado] = dtus.splice(idx, 1);
+    guardarDTUs(dtus);
+    registrarBitacora(session, 'Eliminar solicitud', `${eliminado.folio} (${eliminado.fraccionamiento})`);
+    return eliminado;
+  },
+
   // Admin (Jefe/Coordinador) reasigna manualmente al Facilitador — para
   // cuando se empalman fechas o el Facilitador tiene otras actividades.
   reasignarFacilitador(id, nuevoFacilitador, session) {

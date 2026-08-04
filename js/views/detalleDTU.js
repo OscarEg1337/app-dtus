@@ -19,7 +19,10 @@ function renderDetalleDTU(id, session) {
         <h2>${esc(dtu.folio)}</h2>
         <p style="color:var(--texto-suave);margin-top:-8px">${esc(dtu.fraccionamiento)}</p>
       </div>
-      ${puedeEditar ? '<button type="button" id="btn-editar-dtu" class="btn-secundario">✏️ Editar</button>' : ''}
+      <div style="display:flex;gap:8px;flex:none">
+        ${puedeEditar ? '<button type="button" id="btn-editar-dtu" class="btn-secundario">✏️ Editar</button>' : ''}
+        ${esAdmin ? '<button type="button" id="btn-borrar-dtu" class="btn-borrar">🗑 Eliminar</button>' : ''}
+      </div>
     </div>
 
     <div class="form-grid">
@@ -75,6 +78,15 @@ function renderDetalleDTU(id, session) {
   if (puedeEditar) {
     document.getElementById('btn-editar-dtu').addEventListener('click', () => {
       renderNuevaSolicitud(session, () => renderDashboard(), dtu);
+    });
+  }
+
+  if (esAdmin) {
+    document.getElementById('btn-borrar-dtu').addEventListener('click', () => {
+      if (!confirm(`¿Eliminar ${dtu.folio}? Esta acción no se puede deshacer.`)) return;
+      Store.eliminarDTU(dtu.id, session);
+      Drawer.cerrar();
+      renderDashboard();
     });
   }
 
