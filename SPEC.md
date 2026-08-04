@@ -112,7 +112,8 @@ APP DTUs/
         ├── tableroSemanal.js      — tablero Lunes–Sábado (vista principal)
         ├── nuevaSolicitud.js      — formulario en el drawer (crear y editar)
         ├── detalleDTU.js          — detalle + reasignación en el drawer
-        └── bitacora.js            — auditoría, solo Admin (sección 11)
+        ├── bitacora.js            — auditoría, solo Admin (sección 11)
+        └── calendario.js          — vista de mes, filtro por Facilitador (sección 12)
 ```
 
 ## 10. Rediseño de layout (corrección de spec sobre la marcha)
@@ -145,5 +146,16 @@ y velo oscuro para legibilidad.
 Cada acción que modifica un DTU (crear, editar, capturar Validación,
 reasignar Facilitador) registra una entrada en `localStorage` (`dtu_bitacora`):
 fecha/hora, usuario (correo + nombre), acción, y detalle. Vista `bitacora.js`,
-accesible solo para Admin desde un botón en la barra superior (alterna con
-el tablero). No es editable ni borrable desde la UI — es de solo lectura.
+accesible solo para Admin desde el selector de vistas en la barra superior.
+No es editable ni borrable desde la UI — es de solo lectura.
+
+## 12. Calendario (vista de mes)
+
+Complementa al tablero semanal: muestra el MES completo en cuadrícula
+(domingo a sábado, aunque el negocio solo agenda Lunes–Sábado), con
+navegación ◀ mes ▶, botón "Hoy", y un filtro por Facilitador (dropdown
+con todos los facilitadores del catálogo). Cada DTU aparece como una
+tarjeta pequeña en el día real de su `fecha`; al hacer clic se abre el
+mismo detalle (drawer) que desde el tablero — mismos permisos de
+edición/reasignación/eliminación. Accesible para todos los roles (cada
+quien ve su propio alcance, igual que en el tablero).

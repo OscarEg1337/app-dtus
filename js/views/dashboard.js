@@ -1,6 +1,6 @@
 // dashboard.js — barra superior compacta (sin sidebar) + navegación de
-// semana Vidusa al centro. El contenido es el tablero semanal, o la
-// Bitácora si el Admin la abre. Ver SPEC.md secciones 10 y 11.
+// semana Vidusa al centro. Tres vistas: Tablero (semanal), Calendario
+// (mes completo) y Bitácora (solo Admin). Ver SPEC.md secciones 10, 11 y 12.
 
 const ROL_LABELS = {
   residente: 'Residente',
@@ -11,7 +11,7 @@ const ROL_LABELS = {
 };
 
 let semanaSeleccionada = null;
-let vistaActual = 'tablero';
+let vistaActual = 'tablero'; // 'tablero' | 'calendario' | 'bitacora'
 
 function renderDashboard() {
   const session = Auth.getSession();
@@ -25,6 +25,12 @@ function renderDashboard() {
   const app = document.getElementById('app');
   const puedeCrear = session.rol === 'residente' || session.rol === 'superintendente';
   const esAdmin = session.rol === 'admin';
+
+  const vistas = [
+    { id: 'tablero', label: '📆 Tablero' },
+    { id: 'calendario', label: '📅 Calendario' },
+    ...(esAdmin ? [{ id: 'bitacora', label: '📋 Bitácora' }] : []),
+  ];
 
   app.innerHTML = `
     <div class="app-shell">
@@ -50,11 +56,14 @@ function renderDashboard() {
 
         <div class="app-header__right">
           ${puedeCrear && vistaActual === 'tablero' ? '<button type="button" id="btn-nueva-solicitud" class="btn-primary btn-primary--inline">+ Nueva Solicitud</button>' : ''}
-          ${
-            esAdmin
-              ? `<button type="button" id="btn-toggle-vista" class="btn-secundario">${vistaActual === 'tablero' ? '📋 Bitácora' : '← Tablero'}</button>`
-              : ''
-          }
+          <div class="vista-switcher">
+            ${vistas
+              .map(
+                (v) =>
+                  `<button type="button" class="vista-switcher__item${v.id === vistaActual ? ' activo' : ''}" data-vista="${v.id}">${v.label}</button>`
+              )
+              .join('')}
+          </div>
           <span>${esc(session.nombre)}</span>
           <span class="badge-rol">${esc(ROL_LABELS[session.rol] || session.rol)}</span>
           <button id="btn-logout" class="btn-logout">Salir</button>
@@ -70,15 +79,20 @@ function renderDashboard() {
     Router.goTo('login');
   });
 
-  if (esAdmin) {
-    document.getElementById('btn-toggle-vista').addEventListener('click', () => {
-      vistaActual = vistaActual === 'tablero' ? 'bitacora' : 'tablero';
+  document.querySelectorAll('.vista-switcher__item').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      vistaActual = btn.dataset.vista;
       renderDashboard();
     });
-  }
+  });
 
   if (vistaActual === 'bitacora') {
     renderBitacora(session);
+    return;
+  }
+
+  if (vistaActual === 'calendario') {
+    renderCalendario(session);
     return;
   }
 
