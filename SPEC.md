@@ -153,9 +153,15 @@ No es editable ni borrable desde la UI — es de solo lectura.
 
 Complementa al tablero semanal: muestra el MES completo en cuadrícula
 (domingo a sábado, aunque el negocio solo agenda Lunes–Sábado), con
-navegación ◀ mes ▶, botón "Hoy", y un filtro por Facilitador (dropdown
-con todos los facilitadores del catálogo). Cada DTU aparece como una
-tarjeta pequeña en el día real de su `fecha`; al hacer clic se abre el
-mismo detalle (drawer) que desde el tablero — mismos permisos de
-edición/reasignación/eliminación. Accesible para todos los roles (cada
-quien ve su propio alcance, igual que en el tablero).
+navegación ◀ mes ▶ y botón "Hoy". Celdas en menta (paleta oficial) para
+distinguirse del fondo oscuro de la app. Tres filtros combinables:
+**Fraccionamiento**, **Superintendente** y **Facilitador**. Cada DTU es
+una tarjeta con Fraccionamiento, CC, Manzana, Lote, Etapa, No. Revisión
+y Facilitador; al hacer clic se abre el mismo detalle (drawer) que desde
+el tablero — mismos permisos de edición/reasignación/eliminación.
+Accesible para todos los roles (cada quien ve su propio alcance, igual
+que en el tablero).
+
+**Reasignar Facilitador (Admin):** el dropdown ofrece TODOS los
+facilitadores del catálogo, no solo los "normales" de ese fraccionamiento
+— para cubrir empalmes o cuando el titular tiene otras actividades.

@@ -52,6 +52,20 @@ const Store = {
     return FRACCIONAMIENTOS_SEED.find((f) => f.nombre.toUpperCase() === buscado) || null;
   },
 
+  // Listas completas para filtros y para reasignación manual (Admin puede
+  // reasignar a CUALQUIER facilitador, no solo a los "normales" de ese frente).
+  getTodosFacilitadores() {
+    const set = new Set();
+    FRACCIONAMIENTOS_SEED.forEach((f) => f.facilitadores.forEach((n) => set.add(n)));
+    return [...set].sort((a, b) => a.localeCompare(b, 'es'));
+  },
+
+  getTodosSuperintendentes() {
+    const set = new Set();
+    FRACCIONAMIENTOS_SEED.forEach((f) => set.add(f.superintendente));
+    return [...set].sort((a, b) => a.localeCompare(b, 'es'));
+  },
+
   getTodosDTUs() {
     return leerDTUs();
   },

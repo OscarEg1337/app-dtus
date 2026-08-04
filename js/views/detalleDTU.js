@@ -114,13 +114,12 @@ function renderDetalleDTU(id, session) {
   }
 }
 
-// Admin (Jefe/Coordinador): reasigna manualmente al Facilitador entre los
-// elegibles para ese fraccionamiento (SPEC.md secciones 3 y 4).
+// Admin (Jefe/Coordinador): reasigna manualmente al Facilitador — entre
+// TODOS los facilitadores del catálogo, no solo los "normales" de ese
+// frente (a veces se empalman o tienen otras actividades, ver SPEC.md
+// secciones 3 y 4).
 function renderReasignacionHtml(dtu) {
-  const frac = FRACCIONAMIENTOS_SEED.find(
-    (f) => f.nombre.toUpperCase() === String(dtu.fraccionamiento).toUpperCase().trim()
-  );
-  const opciones = frac ? frac.facilitadores : [];
+  const opciones = Store.getTodosFacilitadores();
 
   return `
     <hr style="border-color:var(--borde);margin:20px 0">
