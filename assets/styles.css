@@ -319,9 +319,13 @@ h1, h2, h3,
   overflow-x: auto;
 }
 
+/* Columnas en menta (paleta oficial), igual que el calendario: se
+   distinguen del fondo oscuro de la app en vez de perderse en tonos
+   parecidos. Las tarjetas de adentro se quedan oscuras (mismo patrón
+   que las tarjetas del calendario) para buen contraste en ambos lados. */
 .tablero__columna {
-  background: var(--panel);
-  border: 1px solid var(--borde);
+  background: var(--menta);
+  border: 1px solid rgba(20, 36, 32, 0.12);
   border-radius: 14px;
   padding: 12px;
   min-height: 200px;
@@ -331,17 +335,17 @@ h1, h2, h3,
   display: flex;
   align-items: center;
   justify-content: space-between;
-  color: var(--menta);
-  font-size: 13px;
-  font-weight: 600;
+  color: var(--verde-profundo);
+  font-size: 14px;
+  font-weight: 700;
   padding: 4px 4px 12px;
-  border-bottom: 1px solid var(--borde);
+  border-bottom: 1px solid rgba(20, 36, 32, 0.15);
   margin-bottom: 10px;
 }
 
 .tablero__conteo {
-  background: var(--panel-2);
-  color: var(--texto-suave);
+  background: var(--verde-profundo);
+  color: var(--menta);
   font-size: 11px;
   padding: 1px 8px;
   border-radius: 999px;
@@ -349,7 +353,7 @@ h1, h2, h3,
 
 .tablero__tarjetas { display: flex; flex-direction: column; gap: 10px; }
 
-.tablero__vacio { color: var(--texto-suave); font-size: 12px; text-align: center; padding: 20px 0; }
+.tablero__vacio { color: #3E5951; font-size: 12px; text-align: center; padding: 20px 0; }
 
 .tarjeta-dtu {
   background: var(--panel-2);
