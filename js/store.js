@@ -2,6 +2,7 @@
 // (Nueva Solicitud) del SPEC — por ahora solo el esqueleto.
 
 const DTUS_KEY = 'dtu_registros';
+const BITACORA_KEY = 'dtu_bitacora';
 
 function leerDTUs() {
   const raw = localStorage.getItem(DTUS_KEY);
@@ -10,6 +11,29 @@ function leerDTUs() {
 
 function guardarDTUs(dtus) {
   localStorage.setItem(DTUS_KEY, JSON.stringify(dtus));
+}
+
+function leerBitacora() {
+  const raw = localStorage.getItem(BITACORA_KEY);
+  return raw ? JSON.parse(raw) : [];
+}
+
+function guardarBitacora(entradas) {
+  localStorage.setItem(BITACORA_KEY, JSON.stringify(entradas));
+}
+
+// Registra quién hizo qué y cuándo — ver SPEC.md sección 11 (Bitácora).
+function registrarBitacora(session, accion, detalle) {
+  const entradas = leerBitacora();
+  entradas.push({
+    id: generarId('log'),
+    fecha: new Date().toISOString(),
+    usuarioCorreo: session.correo,
+    usuarioNombre: session.nombre,
+    accion,
+    detalle,
+  });
+  guardarBitacora(entradas);
 }
 
 function generarFolio(dtusExistentes) {
@@ -36,6 +60,16 @@ const Store = {
     return leerDTUs().find((d) => d.id === id) || null;
   },
 
+  getBitacora() {
+    return leerBitacora().slice().reverse(); // más reciente primero
+  },
+
+  // El dueño (quien lo creó) o Admin pueden editar los datos base — por
+  // si se equivocaron al capturar.
+  puedeEditar(dtu, session) {
+    return session.rol === 'admin' || session.correo === dtu.creadoPor;
+  },
+
   // Alcance por rol (SPEC.md sección 3): Residente/Superintendente ven lo
   // que ellos capturaron; Facilitador ve lo que le toca a él/ella;
   // Admin/Analista ven todo.
@@ -52,22 +86,29 @@ const Store = {
 
   // Admin (Jefe/Coordinador) reasigna manualmente al Facilitador — para
   // cuando se empalman fechas o el Facilitador tiene otras actividades.
-  reasignarFacilitador(id, nuevoFacilitador) {
+  reasignarFacilitador(id, nuevoFacilitador, session) {
     const dtus = leerDTUs();
     const idx = dtus.findIndex((d) => d.id === id);
     if (idx === -1) throw new Error('DTU no encontrado.');
+    const anterior = dtus[idx].facilitador;
     dtus[idx] = { ...dtus[idx], facilitador: nuevoFacilitador || '' };
     guardarDTUs(dtus);
+    registrarBitacora(
+      session,
+      'Reasignar Facilitador',
+      `${dtus[idx].folio}: "${anterior || '(vacío)'}" → "${nuevoFacilitador || '(vacío)'}"`
+    );
     return dtus[idx];
   },
 
   // El Facilitador captura el resultado de su revisión.
-  actualizarValidacion(id, validacionAdmin, comentarios) {
+  actualizarValidacion(id, validacionAdmin, comentarios, session) {
     const dtus = leerDTUs();
     const idx = dtus.findIndex((d) => d.id === id);
     if (idx === -1) throw new Error('DTU no encontrado.');
     dtus[idx] = { ...dtus[idx], validacionAdmin: validacionAdmin || '', comentarios: comentarios || '' };
     guardarDTUs(dtus);
+    registrarBitacora(session, 'Capturar Validación', `${dtus[idx].folio}: "${validacionAdmin || '(vacío)'}"`);
     return dtus[idx];
   },
 
@@ -101,6 +142,45 @@ const Store = {
 
     dtus.push(dtu);
     guardarDTUs(dtus);
+    registrarBitacora(session, 'Crear solicitud', `${dtu.folio} (${dtu.fraccionamiento})`);
     return dtu;
+  },
+
+  // El dueño (Residente/Superintendente que la creó) o Admin corrigen los
+  // datos base por si se equivocaron al capturar. Si cambia la fecha, se
+  // reinicia la Validación (puede que ya no aplique a la nueva fecha).
+  actualizarDTU(id, datos, session) {
+    const dtus = leerDTUs();
+    const idx = dtus.findIndex((d) => d.id === id);
+    if (idx === -1) throw new Error('DTU no encontrado.');
+    const anterior = dtus[idx];
+
+    const fechaCambio = datos.fecha !== anterior.fecha;
+    const otrosDtus = dtus.filter((_, i) => i !== idx);
+    const facilitador = Asignacion.obtenerFacilitador(datos.fraccionamiento, datos.fecha, otrosDtus);
+    const semanaVidusa = SemanaVidusa.buscar(datos.fecha);
+
+    const actualizado = {
+      ...anterior,
+      fraccionamiento: datos.fraccionamiento || '',
+      superintendente: datos.superintendente || '',
+      cc: datos.cc || '',
+      diaSolicitado: datos.diaSolicitado || '',
+      etapa: datos.etapa || '',
+      estatus: datos.estatus || '',
+      manzana: datos.manzana || '',
+      lote: String(datos.lote || '').slice(0, 2),
+      fecha: datos.fecha || '',
+      numeroRevision: datos.numeroRevision || '1',
+      facilitador,
+      semanaVidusa,
+      validacionAdmin: fechaCambio ? '' : anterior.validacionAdmin,
+      comentarios: fechaCambio ? '' : anterior.comentarios,
+    };
+
+    dtus[idx] = actualizado;
+    guardarDTUs(dtus);
+    registrarBitacora(session, 'Editar solicitud', `${actualizado.folio} (${actualizado.fraccionamiento})`);
+    return actualizado;
   },
 };

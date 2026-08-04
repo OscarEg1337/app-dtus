@@ -16,6 +16,20 @@ function generarId(prefijo) {
   return (prefijo || 'id') + '_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8);
 }
 
+// Día de la semana REAL de una fecha 'YYYY-MM-DD' (para validar que el
+// "Día solicitado" que capturó el usuario coincida con la fecha real).
+const DIAS_SEMANA = ['Domingo', 'Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes', 'Sabado'];
+function diaDeSemana(fechaStr) {
+  if (!fechaStr) return '';
+  const fecha = new Date(fechaStr + 'T00:00:00');
+  return DIAS_SEMANA[fecha.getDay()];
+}
+
+function formatearFechaHora(iso) {
+  const d = new Date(iso);
+  return d.toLocaleString('es-MX', { dateStyle: 'short', timeStyle: 'short' });
+}
+
 function pillEstatus(valor) {
   if (!valor) return '<span class="pill pill--vacio">(Vacío)</span>';
   if (valor === 'Operativo') return '<span class="pill pill--operativo">Operativo</span>';

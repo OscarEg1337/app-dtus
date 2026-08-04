@@ -1,16 +1,20 @@
 // nuevaSolicitud.js — formulario de Residente/Superintendente, en el drawer.
-// Al elegir Fraccionamiento, el Superintendente se autollena (viene del
-// catálogo real, ver fraccionamientos.seed.js) y se muestra una vista
-// previa en vivo del Facilitador que le tocaría (Asignacion.obtenerFacilitador).
-// El Facilitador definitivo se recalcula al guardar, por si algo cambió
-// mientras se llenaba el formulario.
+// Sirve para CREAR y para EDITAR (si se pasa `dtuExistente`, ver
+// SPEC.md sección 7.1). Al elegir Fraccionamiento, el Superintendente se
+// autollena y se muestra una vista previa en vivo del Facilitador.
+//
+// Validación dura (SPEC.md Fase 7): no se guarda si el "Día solicitado"
+// no coincide con el día real de la "Fecha" — evita el caso real donde
+// alguien captura "Miércoles" con una fecha que en realidad es sábado.
 
 const DIAS_SOLICITADOS = ['Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes', 'Sabado'];
 const ESTATUS_OPCIONES = ['', 'Cancelado', 'Operativo'];
 
-function renderNuevaSolicitud(session, onGuardado) {
+function renderNuevaSolicitud(session, onGuardado, dtuExistente) {
+  const editando = !!dtuExistente;
+
   Drawer.abrir(`
-    <h2>Nueva Solicitud</h2>
+    <h2>${editando ? 'Editar Solicitud' : 'Nueva Solicitud'}</h2>
     <form id="form-solicitud">
       <div class="form-grid">
         <div class="field">
@@ -18,7 +22,10 @@ function renderNuevaSolicitud(session, onGuardado) {
           <select id="ns-fraccionamiento" required>
             <option value="">Selecciona...</option>
             ${Store.getFraccionamientos()
-              .map((f) => `<option value="${esc(f.nombre)}">${esc(f.nombre)}</option>`)
+              .map(
+                (f) =>
+                  `<option value="${esc(f.nombre)}" ${f.nombre === dtuExistente?.fraccionamiento ? 'selected' : ''}>${esc(f.nombre)}</option>`
+              )
               .join('')}
           </select>
         </div>
@@ -28,41 +35,41 @@ function renderNuevaSolicitud(session, onGuardado) {
         </div>
         <div class="field">
           <label for="ns-cc">CC</label>
-          <input id="ns-cc" type="text" required>
+          <input id="ns-cc" type="text" required value="${esc(dtuExistente?.cc || '')}">
         </div>
         <div class="field">
           <label for="ns-dia">Día solicitado</label>
           <select id="ns-dia" required>
             <option value="">Selecciona...</option>
-            ${DIAS_SOLICITADOS.map((d) => `<option value="${d}">${d}</option>`).join('')}
+            ${DIAS_SOLICITADOS.map((d) => `<option value="${d}" ${d === dtuExistente?.diaSolicitado ? 'selected' : ''}>${d}</option>`).join('')}
           </select>
         </div>
         <div class="field">
           <label for="ns-etapa">Etapa</label>
-          <input id="ns-etapa" type="text" required>
+          <input id="ns-etapa" type="text" required value="${esc(dtuExistente?.etapa || '')}">
         </div>
         <div class="field">
           <label for="ns-estatus">Estatus</label>
           <select id="ns-estatus">
-            ${ESTATUS_OPCIONES.map((e) => `<option value="${e}">${e || '(Vacío)'}</option>`).join('')}
+            ${ESTATUS_OPCIONES.map((e) => `<option value="${e}" ${e === dtuExistente?.estatus ? 'selected' : ''}>${e || '(Vacío)'}</option>`).join('')}
           </select>
         </div>
         <div class="field">
           <label for="ns-manzana">Manzana</label>
-          <input id="ns-manzana" type="text" required>
+          <input id="ns-manzana" type="text" required value="${esc(dtuExistente?.manzana || '')}">
         </div>
         <div class="field">
           <label for="ns-lote">Lote</label>
-          <input id="ns-lote" type="text" maxlength="2" required>
+          <input id="ns-lote" type="text" maxlength="2" required value="${esc(dtuExistente?.lote || '')}">
         </div>
         <div class="field">
           <label for="ns-fecha">Fecha</label>
-          <input id="ns-fecha" type="date" required>
+          <input id="ns-fecha" type="date" required value="${esc(dtuExistente?.fecha || '')}">
         </div>
         <div class="field">
           <label for="ns-revision">Número de revisión</label>
           <select id="ns-revision">
-            ${[1, 2, 3, 4, 5, 6, 7, 8].map((n) => `<option value="${n}">${n}</option>`).join('')}
+            ${[1, 2, 3, 4, 5, 6, 7, 8].map((n) => `<option value="${n}" ${String(n) === String(dtuExistente?.numeroRevision) ? 'selected' : ''}>${n}</option>`).join('')}
           </select>
         </div>
       </div>
@@ -74,7 +81,7 @@ function renderNuevaSolicitud(session, onGuardado) {
 
       <p id="ns-error" class="login-error"></p>
       <div class="form-registro__acciones">
-        <button type="submit" class="btn-primary" style="width:auto">Guardar solicitud</button>
+        <button type="submit" class="btn-primary" style="width:auto">${editando ? 'Guardar cambios' : 'Guardar solicitud'}</button>
       </div>
     </form>
     <div id="ns-resultado"></div>
@@ -99,6 +106,7 @@ function renderNuevaSolicitud(session, onGuardado) {
 
   selFraccionamiento.addEventListener('change', actualizarAutollenado);
   inputFecha.addEventListener('change', actualizarAutollenado);
+  if (editando) actualizarAutollenado(); // los campos ya vienen precargados, sin evento 'change'
 
   document.getElementById('form-solicitud').addEventListener('submit', (e) => {
     e.preventDefault();
@@ -123,19 +131,27 @@ function renderNuevaSolicitud(session, onGuardado) {
       return;
     }
 
+    const diaReal = diaDeSemana(datos.fecha);
+    if (datos.diaSolicitado !== diaReal) {
+      errorEl.textContent = `La fecha ${datos.fecha} es ${diaReal}, no ${datos.diaSolicitado}. Corrígela antes de guardar.`;
+      return;
+    }
+
     errorEl.textContent = '';
-    const dtu = Store.crearDTU(datos, session);
+    const dtu = editando ? Store.actualizarDTU(dtuExistente.id, datos, session) : Store.crearDTU(datos, session);
 
     resultadoEl.innerHTML = `
       <div class="card" style="margin-top:16px;background:var(--panel-2)">
-        <strong>Solicitud guardada:</strong> ${esc(dtu.folio)}<br>
+        <strong>${editando ? 'Cambios guardados' : 'Solicitud guardada'}:</strong> ${esc(dtu.folio)}<br>
         Superintendente: ${esc(dtu.superintendente) || '—'}<br>
         Facilitador asignado: <strong>${esc(dtu.facilitador) || 'Sin facilitador disponible'}</strong><br>
         Semana Vidusa: ${esc(dtu.semanaVidusa) || '—'}
       </div>
     `;
-    e.target.reset();
-    actualizarAutollenado();
+    if (!editando) {
+      e.target.reset();
+      actualizarAutollenado();
+    }
     if (onGuardado) onGuardado();
   });
 }

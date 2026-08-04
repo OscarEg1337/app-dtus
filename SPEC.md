@@ -49,9 +49,9 @@ expuestas de App Web URBA).
 
 ## 3. Roles
 
-- **Residente** / **Superintendente**: crean y editan sus solicitudes (campos base).
+- **Residente** / **Superintendente**: crean y editan sus solicitudes (campos base) — pueden corregir errores de captura mientras sean el dueño (`creadoPor`).
 - **Facilitador**: ve solo los DTUs asignados a él/ella; captura Validación + Comentarios.
-- **Admin** (Jefe / Coordinador): ve todo; puede reasignar el Facilitador de cualquier DTU.
+- **Admin** (Jefe / Coordinador): ve todo; puede editar cualquier solicitud, reasignar el Facilitador de cualquier DTU, y consultar la Bitácora.
 - **Analista**: solo lectura de todo.
 
 ## 4. Algoritmo de asignación (puerto de Apps Script)
@@ -74,7 +74,7 @@ formato de código `2026-WW` (WW con 2 dígitos, ej. `2026-01`, `2026-11`).
 4. **Lista de DTUs** — tabla filtrada según el alcance de cada rol. *Checkpoint:* entro con cada rol y veo la tabla correcta.
 5. **Detalle DTU** — Facilitador captura Validación + Comentarios; se calculan folio y Semana Vidusa. *Checkpoint:* como Facilitador, capturo un resultado y se refleja en la lista.
 6. **Reasignación manual (Admin)** — Jefe/Coordinador cambia el Facilitador de cualquier DTU. *Checkpoint:* como Admin, reasigno un DTU y se refleja en todos lados.
-7. **[Post-MVP] Validaciones finas** — duplicados, día vs fecha, anticipación mínima de la fecha solicitada.
+7. **Validaciones finas** — 7.1 hecha: día vs fecha (bloquea guardar si no coinciden) + edición de datos base por el dueño/Admin. Pendiente: duplicados, anticipación mínima de la fecha solicitada.
 
 ## 7. Corte de MVP
 
@@ -110,8 +110,9 @@ APP DTUs/
         ├── login.js
         ├── dashboard.js           — barra superior + navegación de semana
         ├── tableroSemanal.js      — tablero Lunes–Sábado (vista principal)
-        ├── nuevaSolicitud.js      — formulario en el drawer
-        └── detalleDTU.js          — detalle + reasignación en el drawer
+        ├── nuevaSolicitud.js      — formulario en el drawer (crear y editar)
+        ├── detalleDTU.js          — detalle + reasignación en el drawer
+        └── bitacora.js            — auditoría, solo Admin (sección 11)
 ```
 
 ## 10. Rediseño de layout (corrección de spec sobre la marcha)
@@ -138,3 +139,11 @@ para toda la app (no un negro genérico). Tipografía de marca: NewRail
 Alphabet (`assets/fonts/`) para títulos; sans de sistema para texto de
 tablas/formularios. Login con video de fondo (`assets/video/login-bg.mp4`)
 y velo oscuro para legibilidad.
+
+## 11. Bitácora (auditoría)
+
+Cada acción que modifica un DTU (crear, editar, capturar Validación,
+reasignar Facilitador) registra una entrada en `localStorage` (`dtu_bitacora`):
+fecha/hora, usuario (correo + nombre), acción, y detalle. Vista `bitacora.js`,
+accesible solo para Admin desde un botón en la barra superior (alterna con
+el tablero). No es editable ni borrable desde la UI — es de solo lectura.

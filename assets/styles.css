@@ -476,6 +476,31 @@ h1, h2, h3,
   margin-top: 12px;
 }
 
+/* ---- Tabla (Bitácora) ---- */
+.tabla-wrap { overflow-x: auto; }
+
+.tabla-dtu {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.tabla-dtu th {
+  background: var(--verde-profundo);
+  color: var(--blanco);
+  padding: 8px 10px;
+  text-align: left;
+  font-weight: 600;
+}
+
+.tabla-dtu td {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--borde);
+  color: var(--texto);
+}
+
+.tabla-dtu tr:hover td { background: var(--panel-2); }
+
 .pill {
   display: inline-block;
   padding: 3px 10px;

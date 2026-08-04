@@ -1,6 +1,7 @@
 // detalleDTU.js — detalle de un DTU en el drawer (ver SPEC.md sección 10).
-// El Facilitador captura Validación + Comentarios (Fase 5). El Admin puede
-// además reasignar el Facilitador (Fase 6).
+// El dueño/Admin pueden editar los datos base (Fase 7.1). El Facilitador
+// captura Validación + Comentarios (Fase 5). El Admin puede además
+// reasignar el Facilitador (Fase 6).
 
 const VALIDACION_OPCIONES = ['', 'Cancelado', 'No paso el DTU', 'Paso el DTU'];
 
@@ -10,10 +11,16 @@ function renderDetalleDTU(id, session) {
 
   const esFacilitadorAsignado = session.rol === 'facilitador' && session.nombre === dtu.facilitador;
   const esAdmin = session.rol === 'admin';
+  const puedeEditar = Store.puedeEditar(dtu, session);
 
   Drawer.abrir(`
-    <h2>${esc(dtu.folio)}</h2>
-    <p style="color:var(--texto-suave);margin-top:-8px">${esc(dtu.fraccionamiento)}</p>
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
+      <div>
+        <h2>${esc(dtu.folio)}</h2>
+        <p style="color:var(--texto-suave);margin-top:-8px">${esc(dtu.fraccionamiento)}</p>
+      </div>
+      ${puedeEditar ? '<button type="button" id="btn-editar-dtu" class="btn-secundario">✏️ Editar</button>' : ''}
+    </div>
 
     <div class="form-grid">
       <div class="field"><label>Superintendente</label><div>${esc(dtu.superintendente) || '—'}</div></div>
@@ -65,13 +72,20 @@ function renderDetalleDTU(id, session) {
     ${esAdmin ? renderReasignacionHtml(dtu) : ''}
   `);
 
+  if (puedeEditar) {
+    document.getElementById('btn-editar-dtu').addEventListener('click', () => {
+      renderNuevaSolicitud(session, () => renderDashboard(), dtu);
+    });
+  }
+
   if (esFacilitadorAsignado) {
     document.getElementById('form-validacion').addEventListener('submit', (e) => {
       e.preventDefault();
       Store.actualizarValidacion(
         dtu.id,
         document.getElementById('dt-validacion').value,
-        document.getElementById('dt-comentarios').value.trim()
+        document.getElementById('dt-comentarios').value.trim(),
+        session
       );
       renderDetalleDTU(dtu.id, session);
       renderDashboard();
@@ -81,7 +95,7 @@ function renderDetalleDTU(id, session) {
   if (esAdmin) {
     document.getElementById('btn-reasignar').addEventListener('click', () => {
       const nuevo = document.getElementById('dt-nuevo-facilitador').value;
-      Store.reasignarFacilitador(dtu.id, nuevo);
+      Store.reasignarFacilitador(dtu.id, nuevo, session);
       renderDetalleDTU(dtu.id, session);
       renderDashboard();
     });
