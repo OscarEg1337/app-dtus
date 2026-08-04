@@ -22,7 +22,7 @@ function renderBitacora(session) {
                       (e) => `
               <tr>
                 <td>${esc(formatearFechaHora(e.fecha))}</td>
-                <td>${esc(e.usuarioNombre)} <span style="color:var(--texto-suave)">(${esc(e.usuarioCorreo)})</span></td>
+                <td>${esc(e.usuarioNombre)} <span class="dato-secundario">(${esc(e.usuarioCorreo)})</span></td>
                 <td>${esc(e.accion)}</td>
                 <td>${esc(e.detalle)}</td>
               </tr>`

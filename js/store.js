@@ -36,6 +36,33 @@ function registrarBitacora(session, accion, detalle) {
   guardarBitacora(entradas);
 }
 
+// Nombres legibles de los campos que se pueden editar, para que la
+// Bitácora diga exactamente qué cambió (no solo que "se editó algo").
+const CAMPOS_EDITABLES_LABEL = {
+  fraccionamiento: 'Fraccionamiento',
+  superintendente: 'Superintendente',
+  cc: 'CC',
+  diaSolicitado: 'Día solicitado',
+  etapa: 'Etapa',
+  estatus: 'Estatus',
+  manzana: 'Manzana',
+  lote: 'Lote',
+  fecha: 'Fecha',
+  numeroRevision: 'No. Revisión',
+};
+
+function describirCambios(anterior, actualizado) {
+  const cambios = [];
+  Object.keys(CAMPOS_EDITABLES_LABEL).forEach((campo) => {
+    const antes = anterior[campo] || '(vacío)';
+    const despues = actualizado[campo] || '(vacío)';
+    if (antes !== despues) {
+      cambios.push(`${CAMPOS_EDITABLES_LABEL[campo]}: "${antes}" → "${despues}"`);
+    }
+  });
+  return cambios.length > 0 ? cambios.join('; ') : 'sin cambios en los datos';
+}
+
 function generarFolio(dtusExistentes) {
   const hoy = new Date();
   const fechaStr = hoy.getFullYear() + String(hoy.getMonth() + 1).padStart(2, '0') + String(hoy.getDate()).padStart(2, '0');
@@ -168,7 +195,12 @@ const Store = {
 
     dtus.push(dtu);
     guardarDTUs(dtus);
-    registrarBitacora(session, 'Crear solicitud', `${dtu.folio} (${dtu.fraccionamiento})`);
+    registrarBitacora(
+      session,
+      'Crear solicitud',
+      `${dtu.folio}: ${dtu.fraccionamiento}, CC ${dtu.cc || '—'}, Mz ${dtu.manzana || '—'}, Lt ${dtu.lote || '—'}, ` +
+        `Fecha ${dtu.fecha || '—'}, Facilitador ${dtu.facilitador || '(sin asignar)'}`
+    );
     return dtu;
   },
 
@@ -206,7 +238,7 @@ const Store = {
 
     dtus[idx] = actualizado;
     guardarDTUs(dtus);
-    registrarBitacora(session, 'Editar solicitud', `${actualizado.folio} (${actualizado.fraccionamiento})`);
+    registrarBitacora(session, 'Editar solicitud', `${actualizado.folio}: ${describirCambios(anterior, actualizado)}`);
     return actualizado;
   },
 };

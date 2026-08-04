@@ -491,19 +491,23 @@ h1, h2, h3,
 
 .tabla-dtu th {
   background: var(--verde-profundo);
-  color: var(--blanco);
+  color: var(--menta);
   padding: 8px 10px;
   text-align: left;
-  font-weight: 600;
+  font-weight: 700;
 }
 
+/* Filas en menta (paleta oficial), igual que tablero/calendario: se
+   distinguen del fondo oscuro de la app en vez de perderse. */
 .tabla-dtu td {
   padding: 8px 10px;
-  border-bottom: 1px solid var(--borde);
-  color: var(--texto);
+  border-bottom: 1px solid rgba(20, 36, 32, 0.12);
+  background: var(--menta);
+  color: #142420;
 }
 
-.tabla-dtu tr:hover td { background: var(--panel-2); }
+.tabla-dtu tr:hover td { background: #D3E8D5; }
+.tabla-dtu td .dato-secundario { color: #5C7267; }
 
 /* ---- Selector de vistas (Tablero / Calendario / Bitácora) ---- */
 .vista-switcher {
