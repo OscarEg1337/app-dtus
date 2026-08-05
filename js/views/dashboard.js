@@ -26,7 +26,7 @@ function renderDashboard() {
   const puedeCrear = session.rol === 'residente' || session.rol === 'superintendente';
   const esAdmin = session.rol === 'admin';
 
-  const puedeVerKpi = esAdmin || session.rol === 'analista';
+  const puedeVerKpi = esAdmin;
 
   const vistas = [
     { id: 'tablero', label: '📆 Tablero' },
@@ -81,6 +81,7 @@ function renderDashboard() {
 
   document.getElementById('btn-logout').addEventListener('click', () => {
     Auth.logout();
+    vistaActual = 'tablero';
     Router.goTo('login');
   });
 
@@ -97,12 +98,12 @@ function renderDashboard() {
     });
   }
 
-  if (vistaActual === 'bitacora') {
+  if (vistaActual === 'bitacora' && esAdmin) {
     renderBitacora(session);
     return;
   }
 
-  if (vistaActual === 'dashboard') {
+  if (vistaActual === 'dashboard' && puedeVerKpi) {
     renderDashboardKpi(session);
     return;
   }
