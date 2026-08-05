@@ -599,20 +599,20 @@ h1, h2, h3,
    día con DTUs se distingue de inmediato en vez de perderse en tonos
    oscuros parecidos. */
 .calendario__celda {
-  min-height: 108px;
+  min-height: 56px;
   background: var(--menta);
   border: 1px solid rgba(20, 36, 32, 0.12);
   border-radius: 10px;
-  padding: 6px;
+  padding: 5px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 3px;
 }
 
 .calendario__celda--vacia { background: transparent; border-color: transparent; }
 .calendario__celda--hoy { border: 2px solid var(--verde-profundo); box-shadow: 0 0 0 2px var(--verde-brillante) inset; }
 
-.calendario__num { font-size: 12px; color: #3E5951; font-weight: 600; }
+.calendario__num { font-size: 15px; color: #3E5951; font-weight: 700; }
 .calendario__celda--hoy .calendario__num { color: var(--verde-profundo); font-weight: 800; }
 
 .calendario__chips { display: flex; flex-direction: column; gap: 4px; overflow-y: auto; }
