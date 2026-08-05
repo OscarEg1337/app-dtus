@@ -659,7 +659,8 @@ h1, h2, h3,
 .kpi-tabla {
   border-collapse: separate;
   border-spacing: 0;
-  width: 100%;
+  table-layout: fixed;
+  width: auto;
 }
 
 .kpi-tabla th,
@@ -669,6 +670,7 @@ h1, h2, h3,
 
 .kpi-tabla thead th {
   padding: 4px 5px;
+  width: 60px;
   text-align: center;
   font-size: 9px;
   font-weight: 600;
@@ -679,13 +681,14 @@ h1, h2, h3,
 }
 
 .kpi-tabla__esquina {
+  width: 140px;
   text-align: left !important;
   color: var(--blanco) !important;
 }
 
 .kpi-tabla__fila-header {
   padding: 0 10px;
-  min-width: 140px;
+  width: 140px;
   text-align: left;
   font-size: 11px;
   font-weight: 600;
@@ -695,7 +698,7 @@ h1, h2, h3,
 }
 
 .kpi-tabla__celda {
-  min-width: 52px;
+  width: 60px;
   height: 24px;
   text-align: center;
   font-size: 11px;
