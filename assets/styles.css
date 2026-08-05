@@ -668,13 +668,14 @@ h1, h2, h3,
 }
 
 .kpi-tabla thead th {
-  padding: 8px 6px;
+  padding: 4px 5px;
   text-align: center;
-  font-size: 11px;
+  font-size: 9px;
   font-weight: 600;
   color: var(--texto-suave);
   white-space: nowrap;
   background: var(--bg-2);
+  line-height: 1.3;
 }
 
 .kpi-tabla__esquina {
@@ -683,10 +684,10 @@ h1, h2, h3,
 }
 
 .kpi-tabla__fila-header {
-  padding: 0 12px;
-  min-width: 170px;
+  padding: 0 10px;
+  min-width: 140px;
   text-align: left;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
   color: var(--blanco);
   background: var(--bg-2);
@@ -694,10 +695,10 @@ h1, h2, h3,
 }
 
 .kpi-tabla__celda {
-  min-width: 90px;
-  height: 42px;
+  min-width: 52px;
+  height: 24px;
   text-align: center;
-  font-size: 13px;
+  font-size: 11px;
   font-weight: 700;
 }
 

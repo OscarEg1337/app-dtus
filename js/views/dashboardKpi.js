@@ -53,9 +53,6 @@ function renderDashboardKpi(session) {
   contentEl.innerHTML = `
     <div class="card">
       <h2>Cancelación por Fraccionamiento y Semana</h2>
-      <p class="dato-secundario" style="margin-top:-6px">
-        % = DTUs con estatus "Cancelado" ÷ total de DTUs asignados, por frente y Semana Vidusa.
-      </p>
       ${
         semanas.length === 0
           ? '<p>Todavía no hay DTUs asignados para calcular el KPI.</p>'
