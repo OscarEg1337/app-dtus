@@ -654,6 +654,59 @@ h1, h2, h3,
 .pill--nopaso { background: var(--rojo-fondo); color: var(--rojo); }
 
 /* ---- Dashboard: matriz de % Cancelación por Fraccionamiento y Semana ---- */
+.dashboard-kpi-layout {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+.dashboard-kpi-layout .card { flex: 1; min-width: 0; }
+
+.kpi-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 220px;
+  flex-shrink: 0;
+}
+
+.kpi-stat {
+  background: var(--panel);
+  border: 1px solid var(--borde);
+  border-radius: 12px;
+  padding: 18px;
+  text-align: center;
+}
+
+.kpi-stat--acento {
+  background: rgba(90, 197, 92, 0.12);
+  border: 1px solid var(--verde-brillante);
+}
+
+.kpi-stat__num {
+  font-size: 40px;
+  font-weight: 800;
+  color: var(--blanco);
+  line-height: 1;
+}
+
+.kpi-stat--acento .kpi-stat__num { color: var(--verde-brillante); }
+.kpi-stat__num--amarillo { color: var(--amarillo); }
+
+.kpi-stat__label {
+  margin-top: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--texto-suave);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+@media (max-width: 900px) {
+  .dashboard-kpi-layout { flex-direction: column; }
+  .kpi-stats { flex-direction: row; width: 100%; }
+  .kpi-stat { flex: 1; }
+}
+
 .kpi-matriz-wrap { overflow-x: auto; padding-bottom: 6px; }
 
 .kpi-tabla {

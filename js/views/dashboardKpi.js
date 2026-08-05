@@ -44,57 +44,90 @@ function colorCancelacion(pct) {
   return `rgb(${ESCALA_CANCELACION[ESCALA_CANCELACION.length - 1].c.join(',')})`;
 }
 
+// Totales de resumen (las tres tarjetas junto a la matriz): cuántos DTUs se
+// programaron en total (sin importar si luego se cancelaron), cuántos de
+// esos se cancelaron, y en cuántos fraccionamientos distintos hubo actividad.
+function calcularResumenKpi(dtus, porFrente) {
+  let programados = 0;
+  let cancelados = 0;
+  dtus.forEach((d) => {
+    if (!d.fraccionamiento || !d.semanaVidusa) return;
+    programados += 1;
+    if (d.estatus === 'Cancelado') cancelados += 1;
+  });
+  const fraccionamientosConDatos = Object.keys(porFrente).length;
+  return { programados, cancelados, fraccionamientosConDatos };
+}
+
 function renderDashboardKpi(session) {
   const contentEl = document.getElementById('app-content');
   const dtus = Store.getDTUsPorSesion(session);
   const { semanas, porFrente } = calcularMatrizCancelacion(dtus);
   const frentes = Store.getFraccionamientos().map((f) => f.nombre);
+  const resumen = calcularResumenKpi(dtus, porFrente);
 
   contentEl.innerHTML = `
-    <div class="card">
-      <h2>Cancelación por Fraccionamiento y Semana</h2>
-      ${
-        semanas.length === 0
-          ? '<p>Todavía no hay DTUs asignados para calcular el KPI.</p>'
-          : `
-      <div class="kpi-matriz-wrap">
-        <table class="kpi-tabla">
-          <thead>
-            <tr>
-              <th class="kpi-tabla__esquina">Fraccionamiento</th>
-              ${semanas
-                .map(
-                  (s) => `
-                <th>${esc(SemanaVidusa.etiqueta(s).replace(/^Semana \d+ · /, ''))}<br><span class="dato-secundario">${esc(s)}</span></th>`
-                )
-                .join('')}
-            </tr>
-          </thead>
-          <tbody>
-            ${frentes
-              .map((frente) => {
-                const fila = porFrente[frente] || {};
-                return `
-            <tr>
-              <th class="kpi-tabla__fila-header">${esc(frente)}</th>
-              ${semanas
-                .map((s) => {
-                  const celda = fila[s];
-                  if (!celda || celda.total === 0) return '<td class="kpi-tabla__celda kpi-tabla__celda--vacia"></td>';
-                  const pct = Math.round((celda.cancelados / celda.total) * 100);
-                  const color = colorCancelacion(pct);
-                  const textoClaro = pct >= 55;
-                  return `<td class="kpi-tabla__celda" style="background:${color}; color:${textoClaro ? '#fff' : '#142420'}" title="${celda.cancelados} de ${celda.total} DTU(s) cancelados">${pct}%</td>`;
+    <div class="dashboard-kpi-layout">
+      <div class="card">
+        <h2>Cancelación por Fraccionamiento y Semana</h2>
+        ${
+          semanas.length === 0
+            ? '<p>Todavía no hay DTUs asignados para calcular el KPI.</p>'
+            : `
+        <div class="kpi-matriz-wrap">
+          <table class="kpi-tabla">
+            <thead>
+              <tr>
+                <th class="kpi-tabla__esquina">Fraccionamiento</th>
+                ${semanas
+                  .map(
+                    (s) => `
+                  <th>${esc(SemanaVidusa.etiqueta(s).replace(/^Semana \d+ · /, ''))}<br><span class="dato-secundario">${esc(s)}</span></th>`
+                  )
+                  .join('')}
+              </tr>
+            </thead>
+            <tbody>
+              ${frentes
+                .map((frente) => {
+                  const fila = porFrente[frente] || {};
+                  return `
+              <tr>
+                <th class="kpi-tabla__fila-header">${esc(frente)}</th>
+                ${semanas
+                  .map((s) => {
+                    const celda = fila[s];
+                    if (!celda || celda.total === 0) return '<td class="kpi-tabla__celda kpi-tabla__celda--vacia"></td>';
+                    const pct = Math.round((celda.cancelados / celda.total) * 100);
+                    const color = colorCancelacion(pct);
+                    const textoClaro = pct >= 55;
+                    return `<td class="kpi-tabla__celda" style="background:${color}; color:${textoClaro ? '#fff' : '#142420'}" title="${celda.cancelados} de ${celda.total} DTU(s) cancelados">${pct}%</td>`;
+                  })
+                  .join('')}
+              </tr>`;
                 })
                 .join('')}
-            </tr>`;
-              })
-              .join('')}
-          </tbody>
-        </table>
+            </tbody>
+          </table>
+        </div>
+        `
+        }
       </div>
-      `
-      }
+
+      <div class="kpi-stats">
+        <div class="kpi-stat kpi-stat--acento">
+          <div class="kpi-stat__num">${resumen.programados}</div>
+          <div class="kpi-stat__label">DTUs Programados</div>
+        </div>
+        <div class="kpi-stat">
+          <div class="kpi-stat__num kpi-stat__num--amarillo">${resumen.cancelados}</div>
+          <div class="kpi-stat__label">Cancelados</div>
+        </div>
+        <div class="kpi-stat">
+          <div class="kpi-stat__num">${resumen.fraccionamientosConDatos}</div>
+          <div class="kpi-stat__label">Fraccionamientos</div>
+        </div>
+      </div>
     </div>
   `;
 }
