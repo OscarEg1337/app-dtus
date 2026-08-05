@@ -43,19 +43,21 @@ function renderDashboard() {
           </div>
         </div>
 
-        ${
-          vistaActual === 'tablero'
-            ? `
-        <div class="topbar__semana">
-          <button type="button" class="btn-semana" id="btn-semana-prev" aria-label="Semana anterior">←</button>
-          <span id="etiqueta-semana">${esc(SemanaVidusa.etiqueta(semanaSeleccionada))}</span>
-          <button type="button" class="btn-semana" id="btn-semana-next" aria-label="Semana siguiente">→</button>
-        </div>`
-            : '<div></div>'
-        }
+        <div class="topbar__centro">
+          ${
+            vistaActual === 'tablero'
+              ? `
+          <div class="topbar__semana">
+            <button type="button" class="btn-semana" id="btn-semana-prev" aria-label="Semana anterior">←</button>
+            <span id="etiqueta-semana">${esc(SemanaVidusa.etiqueta(semanaSeleccionada))}</span>
+            <button type="button" class="btn-semana" id="btn-semana-next" aria-label="Semana siguiente">→</button>
+          </div>`
+              : ''
+          }
+        </div>
 
         <div class="app-header__right">
-          ${puedeCrear && vistaActual === 'tablero' ? '<button type="button" id="btn-nueva-solicitud" class="btn-primary btn-primary--inline">+ Nueva Solicitud</button>' : ''}
+          ${puedeCrear ? '<button type="button" id="btn-nueva-solicitud" class="btn-primary btn-primary--inline">+ Nueva Solicitud</button>' : ''}
           <div class="vista-switcher">
             ${vistas
               .map(
@@ -86,6 +88,12 @@ function renderDashboard() {
     });
   });
 
+  if (puedeCrear) {
+    document.getElementById('btn-nueva-solicitud').addEventListener('click', () => {
+      renderNuevaSolicitud(session, () => renderDashboard());
+    });
+  }
+
   if (vistaActual === 'bitacora') {
     renderBitacora(session);
     return;
@@ -104,12 +112,6 @@ function renderDashboard() {
     semanaSeleccionada = SemanaVidusa.vecino(semanaSeleccionada, 1);
     renderDashboard();
   });
-
-  if (puedeCrear) {
-    document.getElementById('btn-nueva-solicitud').addEventListener('click', () => {
-      renderNuevaSolicitud(session, () => renderDashboard());
-    });
-  }
 
   renderTableroSemanal(session, semanaSeleccionada);
 }

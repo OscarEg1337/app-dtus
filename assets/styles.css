@@ -227,21 +227,28 @@ h1, h2, h3,
 .app-shell { display: flex; flex-direction: column; min-height: 100vh; }
 
 .topbar {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  justify-content: space-between;
   gap: 16px;
   padding: 12px 24px;
   background: var(--bg-2);
   border-bottom: 1px solid var(--borde);
   color: var(--blanco);
-  flex-wrap: wrap;
 }
 
 .topbar__marca {
   display: flex;
   align-items: center;
   gap: 10px;
+  justify-self: start;
+}
+
+.topbar__centro {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 32px;
 }
 
 .topbar__logo {
@@ -286,6 +293,7 @@ h1, h2, h3,
   align-items: center;
   gap: 12px;
   font-size: 13px;
+  justify-self: end;
 }
 
 .badge-rol {
