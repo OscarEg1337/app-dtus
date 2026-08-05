@@ -52,7 +52,7 @@ function renderDashboardKpi(session) {
 
   contentEl.innerHTML = `
     <div class="card">
-      <h2>% Cancelación por Fraccionamiento y Semana</h2>
+      <h2>Cancelación por Fraccionamiento y Semana</h2>
       <p class="dato-secundario" style="margin-top:-6px">
         % = DTUs con estatus "Cancelado" ÷ total de DTUs asignados, por frente y Semana Vidusa.
       </p>
@@ -61,30 +61,40 @@ function renderDashboardKpi(session) {
           ? '<p>Todavía no hay DTUs asignados para calcular el KPI.</p>'
           : `
       <div class="kpi-matriz-wrap">
-        <div class="kpi-matriz" style="grid-template-columns: 190px repeat(${semanas.length}, 90px);">
-          <div class="kpi-matriz__esquina"></div>
-          ${semanas
-            .map((s) => `<div class="kpi-matriz__col-header">${esc(SemanaVidusa.etiqueta(s).replace(/^Semana \d+ · /, ''))}<br><span class="dato-secundario">${esc(s)}</span></div>`)
-            .join('')}
-
-          ${frentes
-            .map((frente) => {
-              const fila = porFrente[frente] || {};
-              return `
-            <div class="kpi-matriz__fila-header">${esc(frente)}</div>
-            ${semanas
-              .map((s) => {
-                const celda = fila[s];
-                if (!celda || celda.total === 0) return '<div class="kpi-matriz__celda kpi-matriz__celda--vacia"></div>';
-                const pct = Math.round((celda.cancelados / celda.total) * 100);
-                const color = colorCancelacion(pct);
-                const textoClaro = pct >= 55;
-                return `<div class="kpi-matriz__celda" style="background:${color}; color:${textoClaro ? '#fff' : '#142420'}" title="${celda.cancelados} de ${celda.total} DTU(s) cancelados">${pct}%</div>`;
+        <table class="kpi-tabla">
+          <thead>
+            <tr>
+              <th class="kpi-tabla__esquina">Fraccionamiento</th>
+              ${semanas
+                .map(
+                  (s) => `
+                <th>${esc(SemanaVidusa.etiqueta(s).replace(/^Semana \d+ · /, ''))}<br><span class="dato-secundario">${esc(s)}</span></th>`
+                )
+                .join('')}
+            </tr>
+          </thead>
+          <tbody>
+            ${frentes
+              .map((frente) => {
+                const fila = porFrente[frente] || {};
+                return `
+            <tr>
+              <th class="kpi-tabla__fila-header">${esc(frente)}</th>
+              ${semanas
+                .map((s) => {
+                  const celda = fila[s];
+                  if (!celda || celda.total === 0) return '<td class="kpi-tabla__celda kpi-tabla__celda--vacia"></td>';
+                  const pct = Math.round((celda.cancelados / celda.total) * 100);
+                  const color = colorCancelacion(pct);
+                  const textoClaro = pct >= 55;
+                  return `<td class="kpi-tabla__celda" style="background:${color}; color:${textoClaro ? '#fff' : '#142420'}" title="${celda.cancelados} de ${celda.total} DTU(s) cancelados">${pct}%</td>`;
+                })
+                .join('')}
+            </tr>`;
               })
-              .join('')}`;
-            })
-            .join('')}
-        </div>
+              .join('')}
+          </tbody>
+        </table>
       </div>
       `
       }

@@ -656,42 +656,50 @@ h1, h2, h3,
 /* ---- Dashboard: matriz de % Cancelación por Fraccionamiento y Semana ---- */
 .kpi-matriz-wrap { overflow-x: auto; padding-bottom: 6px; }
 
-.kpi-matriz {
-  display: grid;
-  gap: 3px;
+.kpi-tabla {
+  border-collapse: separate;
+  border-spacing: 0;
+  width: 100%;
 }
 
-.kpi-matriz__esquina { background: transparent; }
+.kpi-tabla th,
+.kpi-tabla td {
+  border: 1px solid var(--borde);
+}
 
-.kpi-matriz__col-header {
-  padding: 6px 4px;
+.kpi-tabla thead th {
+  padding: 8px 6px;
   text-align: center;
   font-size: 11px;
+  font-weight: 600;
   color: var(--texto-suave);
   white-space: nowrap;
+  background: var(--bg-2);
 }
 
-.kpi-matriz__fila-header {
-  display: flex;
-  align-items: center;
-  padding: 0 10px;
-  font-size: 11px;
+.kpi-tabla__esquina {
+  text-align: left !important;
+  color: var(--blanco) !important;
+}
+
+.kpi-tabla__fila-header {
+  padding: 0 12px;
+  min-width: 170px;
+  text-align: left;
+  font-size: 12px;
   font-weight: 600;
   color: var(--blanco);
-  background: var(--panel);
-  border-radius: 6px;
+  background: var(--bg-2);
   white-space: nowrap;
 }
 
-.kpi-matriz__celda {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 40px;
-  border-radius: 6px;
+.kpi-tabla__celda {
+  min-width: 90px;
+  height: 42px;
+  text-align: center;
   font-size: 13px;
   font-weight: 700;
 }
 
-.kpi-matriz__celda--vacia { background: var(--panel); }
+.kpi-tabla__celda--vacia { background: var(--panel); }
 .pill--vacio { background: rgba(255,255,255,0.06); color: var(--texto-suave); }
