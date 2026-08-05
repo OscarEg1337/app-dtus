@@ -669,10 +669,10 @@ h1, h2, h3,
 }
 
 .kpi-tabla thead th {
-  padding: 6px 5px;
-  width: 60px;
+  padding: 7px 5px;
+  width: 66px;
   text-align: center;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 700;
   color: var(--blanco);
   white-space: nowrap;
