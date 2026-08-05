@@ -11,7 +11,7 @@ const ROL_LABELS = {
 };
 
 let semanaSeleccionada = null;
-let vistaActual = 'tablero'; // 'tablero' | 'calendario' | 'bitacora'
+let vistaActual = 'tablero'; // 'tablero' | 'calendario' | 'dashboard' | 'bitacora'
 
 function renderDashboard() {
   const session = Auth.getSession();
@@ -26,9 +26,12 @@ function renderDashboard() {
   const puedeCrear = session.rol === 'residente' || session.rol === 'superintendente';
   const esAdmin = session.rol === 'admin';
 
+  const puedeVerKpi = esAdmin || session.rol === 'analista';
+
   const vistas = [
     { id: 'tablero', label: '📆 Tablero' },
     { id: 'calendario', label: '📅 Calendario' },
+    ...(puedeVerKpi ? [{ id: 'dashboard', label: '📊 Dashboard' }] : []),
     ...(esAdmin ? [{ id: 'bitacora', label: '📋 Bitácora' }] : []),
   ];
 
@@ -96,6 +99,11 @@ function renderDashboard() {
 
   if (vistaActual === 'bitacora') {
     renderBitacora(session);
+    return;
+  }
+
+  if (vistaActual === 'dashboard') {
+    renderDashboardKpi(session);
     return;
   }
 

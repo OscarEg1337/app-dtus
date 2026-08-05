@@ -652,4 +652,46 @@ h1, h2, h3,
 .pill--cancelado { background: var(--amarillo-fondo); color: var(--amarillo); }
 .pill--paso { background: rgba(90, 197, 92, 0.18); color: var(--verde-brillante); }
 .pill--nopaso { background: var(--rojo-fondo); color: var(--rojo); }
+
+/* ---- Dashboard: matriz de % Cancelación por Fraccionamiento y Semana ---- */
+.kpi-matriz-wrap { overflow-x: auto; padding-bottom: 6px; }
+
+.kpi-matriz {
+  display: grid;
+  gap: 3px;
+}
+
+.kpi-matriz__esquina { background: transparent; }
+
+.kpi-matriz__col-header {
+  padding: 6px 4px;
+  text-align: center;
+  font-size: 11px;
+  color: var(--texto-suave);
+  white-space: nowrap;
+}
+
+.kpi-matriz__fila-header {
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--blanco);
+  background: var(--panel);
+  border-radius: 6px;
+  white-space: nowrap;
+}
+
+.kpi-matriz__celda {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.kpi-matriz__celda--vacia { background: var(--panel); }
 .pill--vacio { background: rgba(255,255,255,0.06); color: var(--texto-suave); }
