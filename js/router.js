@@ -6,15 +6,23 @@ const Router = {
       renderLogin();
       return;
     }
+    if (vista === 'crearCuenta') {
+      renderCrearCuenta();
+      return;
+    }
+    if (vista === 'restablecer') {
+      renderRestablecerPassword();
+      return;
+    }
     if (vista === 'dashboard') {
       renderDashboard();
       return;
     }
   },
 
-  init() {
-    const session = Auth.getSession();
-    if (session) {
+  async init() {
+    await Auth.sincronizar();
+    if (Auth.getSession()) {
       renderDashboard();
     } else {
       renderLogin();
@@ -26,13 +34,27 @@ document.addEventListener('DOMContentLoaded', () => {
   Router.init();
 });
 
-// La app no tiene backend: cada pestaña lee/escribe el mismo localStorage
-// del navegador, pero una pestaña ya abierta no se entera sola de un
-// cambio hecho en otra (p. ej. el Admin borra un DTU en una pestaña,
-// mientras un Residente lo tiene abierto en otra). El evento 'storage'
-// SÍ llega a las demás pestañas del mismo navegador cuando cambia
-// localStorage, así que lo usamos para refrescar la vista actual en vez
-// de depender de que alguien le dé F5.
+// Cambios de sesión reales de Supabase (login/logout/token renovado) — se
+// disparan también en otras pestañas del mismo navegador, así que esto
+// reemplaza (para la sesión) el refresco manual que antes hacía falta.
+// PASSWORD_RECOVERY es el evento especial que dispara Supabase cuando el
+// usuario entra desde el link de "restablecer contraseña" del correo.
+supabaseClient.auth.onAuthStateChange(async (event, session) => {
+  if (event === 'PASSWORD_RECOVERY') {
+    renderNuevaPassword();
+    return;
+  }
+  await Auth.sincronizar();
+  if (Auth.getSession()) {
+    renderDashboard();
+  } else if (event === 'SIGNED_OUT') {
+    renderLogin();
+  }
+});
+
+// Los DTUs (js/store.js) todavía viven en localStorage hasta la Fase de
+// build 4 — mientras tanto, seguimos refrescando la vista sola cuando
+// cambian en otra pestaña del mismo navegador.
 window.addEventListener('storage', (e) => {
   if (e.key !== 'dtu_registros' && e.key !== 'dtu_bitacora') return;
   if (Auth.getSession()) {

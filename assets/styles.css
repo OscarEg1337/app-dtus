@@ -183,6 +183,20 @@ h1, h2, h3,
   margin: 4px 0 10px;
 }
 
+.login-links {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 16px;
+  text-align: center;
+}
+.login-links a {
+  color: var(--verde-brillante);
+  font-size: 13px;
+  text-decoration: none;
+}
+.login-links a:hover { text-decoration: underline; }
+
 .btn-primary {
   width: 100%;
   padding: 12px;

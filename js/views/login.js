@@ -19,7 +19,7 @@ function renderLogin() {
           <form id="login-form" class="login-form">
             <div class="field">
               <label for="login-correo">Correo</label>
-              <input id="login-correo" type="email" autocomplete="username" placeholder="usuario@test.local" required>
+              <input id="login-correo" type="email" autocomplete="username" placeholder="tu.nombre@vidusa.com" required>
             </div>
             <div class="field">
               <label for="login-password">Contraseña</label>
@@ -28,23 +28,44 @@ function renderLogin() {
             <p id="login-error" class="login-error"></p>
             <button type="submit" class="btn-primary" id="login-submit">Ingresar</button>
           </form>
+
+          <div class="login-links">
+            <a href="#" id="link-crear-cuenta">¿No tienes cuenta? Créala aquí</a>
+            <a href="#" id="link-olvide-password">¿Olvidaste tu contraseña?</a>
+          </div>
         </div>
       </div>
     </div>
   `;
 
-  document.getElementById('login-form').addEventListener('submit', (e) => {
+  document.getElementById('login-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     const correo = document.getElementById('login-correo').value.trim();
     const password = document.getElementById('login-password').value;
     const errorEl = document.getElementById('login-error');
+    const submitEl = document.getElementById('login-submit');
 
-    const result = Auth.login(correo, password);
+    submitEl.disabled = true;
+    submitEl.textContent = 'Entrando...';
+    const result = await Auth.login(correo, password);
+    submitEl.disabled = false;
+    submitEl.textContent = 'Ingresar';
+
     if (!result.ok) {
       errorEl.textContent = result.error;
       return;
     }
     errorEl.textContent = '';
     Router.goTo('dashboard');
+  });
+
+  document.getElementById('link-crear-cuenta').addEventListener('click', (e) => {
+    e.preventDefault();
+    Router.goTo('crearCuenta');
+  });
+
+  document.getElementById('link-olvide-password').addEventListener('click', (e) => {
+    e.preventDefault();
+    Router.goTo('restablecer');
   });
 }
