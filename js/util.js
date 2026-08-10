@@ -30,6 +30,16 @@ function formatearFechaHora(iso) {
   return d.toLocaleString('es-MX', { dateStyle: 'short', timeStyle: 'short' });
 }
 
+// Regla única de "Cancelado" para todo el Dashboard: lo canceló la obra
+// (Estatus) o el Facilitador lo marcó Cancelado en su Validación. Se usa
+// en la matriz, las tarjetas de resumen y la tabla dinámica para que
+// todas cuenten exactamente lo mismo — antes la matriz de arriba solo
+// miraba Estatus y el resto del Dashboard miraba Estatus o Validación,
+// lo que daba porcentajes distintos para los mismos datos.
+function esDtuCancelado(d) {
+  return d.estatus === 'Cancelado' || d.validacionAdmin === 'Cancelado';
+}
+
 function pillEstatus(valor) {
   if (!valor) return '<span class="pill pill--vacio">(Vacío)</span>';
   if (valor === 'Operativo') return '<span class="pill pill--operativo">Operativo</span>';
@@ -38,7 +48,7 @@ function pillEstatus(valor) {
 }
 
 function pillValidacion(valor) {
-  if (!valor) return '<span class="pill pill--vacio">(Vacío)</span>';
+  if (!valor) return '<span class="pill pill--proceso">Proceso de validación</span>';
   if (valor === 'Paso el DTU') return '<span class="pill pill--paso">Pasó el DTU</span>';
   if (valor === 'No paso el DTU') return '<span class="pill pill--nopaso">No pasó el DTU</span>';
   if (valor === 'Cancelado') return '<span class="pill pill--cancelado">Cancelado</span>';
