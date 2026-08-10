@@ -94,6 +94,7 @@ create or replace function manejar_nuevo_usuario()
 returns trigger
 language plpgsql
 security definer
+set search_path = public
 as $$
 declare
   rol_elegido text := new.raw_user_meta_data->>'rol';
@@ -107,7 +108,7 @@ begin
     raise exception 'Rol inválido: debe ser "residente" (Obra) o "facilitador"';
   end if;
 
-  insert into profiles (id, correo, nombre, rol)
+  insert into public.profiles (id, correo, nombre, rol)
   values (new.id, new.email, nombre_elegido, rol_elegido);
 
   return new;
