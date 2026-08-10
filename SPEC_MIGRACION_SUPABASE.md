@@ -19,10 +19,20 @@ real:
   fijas (`Test123`). Cada usuario real crea su propia contraseña mediante
   un formulario de registro (`signUp`) — no requiere backend/serverless
   porque Supabase lo maneja del lado del cliente de forma segura.
-- Quién tiene permiso de registrarse y con qué rol lo controla el Admin
-  agregando el correo a una tabla `usuarios_permitidos` (correo + rol) en
-  Supabase — un trigger asigna el rol automáticamente al registrarse si el
-  correo está en esa lista; si no está, no obtiene acceso.
+- Registro **100% autoservicio, sin curación manual del Admin por persona**
+  (corrección de spec del 10/08/2026 — el diseño original de
+  `usuarios_permitidos` con alta manual se descartó: no es responsabilidad
+  del Admin dar de alta uno por uno). El control de acceso es automático,
+  por dos reglas que valida un trigger en la base de datos:
+  1. El correo debe terminar en **`@vidusa.com`** (dominio de la empresa).
+  2. Al registrarse, el usuario elige su propio rol en un dropdown con
+     **solo 2 opciones: "Obra" o "Facilitador"** — Admin nunca es una
+     opción ahí, se maneja aparte. "Obra" se guarda internamente como
+     `rol = 'residente'` (mismo permiso que ya tenían Residente y
+     Superintendente en la app original).
+  - Un correo que no sea `@vidusa.com`, o un intento de registrarse con un
+    rol fuera de esos 2, se rechaza en el propio trigger (no en JavaScript,
+    para que no se pueda saltar llamando la API directo).
 - Las reglas de negocio de permisos que ya existen en la app (dueño o Admin
   edita, solo dueño-no-Admin cancela, solo Admin elimina, Facilitador solo
   ve lo suyo, etc.) se replican como **políticas RLS** en Postgres — no solo
@@ -51,7 +61,7 @@ reales, datos reales del equipo Vidusa.
          ▼
 [Supabase]
    ├── Auth ─── login/registro de cada usuario real
-   └── Postgres (profiles, dtus, bitacora, usuarios_permitidos)
+   └── Postgres (profiles, dtus, bitacora)
          protegido por Row Level Security (RLS)
 ```
 
@@ -70,8 +80,8 @@ APP DTUs/
 ├── .gitignore                    # ignora node_modules, .env
 ├── assets/                       # (sin cambios: styles.css, img/, video/)
 ├── supabase/
-│   ├── schema.sql                # NUEVO — tablas: profiles, dtus, bitacora, usuarios_permitidos
-│   └── policies.sql              # NUEVO — RLS: quién lee/crea/edita/borra cada fila, por rol; trigger de alta automática
+│   ├── schema.sql                # NUEVO — tablas: profiles, dtus, bitacora; trigger de alta automatica (dominio @vidusa.com + rol elegido por el usuario)
+│   └── policies.sql              # NUEVO — RLS: quién lee/crea/edita/borra cada fila, por rol
 └── js/
     ├── config.js                 # AJUSTADO — URL y ANON KEY de Supabase
     ├── supabaseClient.js         # NUEVO — crea el cliente supabase-js
@@ -107,17 +117,18 @@ Supabase todavía.
 
 ### Fase de build 2 — Supabase: tablas + trigger + RLS [MVP]
 Crear el proyecto de Supabase; `supabase/schema.sql` y `policies.sql` con
-`profiles`, `dtus`, `bitacora`, `usuarios_permitidos`, RLS y el trigger de
-alta automática por correo permitido.
-**Checkpoint:** insertando a mano en el SQL Editor, un correo de prueba en
-`usuarios_permitidos` + un usuario en Auth genera automáticamente la fila
-correspondiente en `profiles` con el rol correcto.
+`profiles`, `dtus`, `bitacora`, RLS y el trigger que valida dominio
+`@vidusa.com` + rol elegido (solo "residente" [Obra] o "facilitador").
+**Checkpoint:** se dispara un registro de prueba por la API (correo
+`@vidusa.com`, rol válido) y aparece solo la fila correspondiente en
+`profiles`; un correo fuera del dominio o un rol inválido se rechaza.
 
 ### Fase de build 3 — Login real + Crear cuenta [MVP]
 `supabaseClient.js`, reescribir `auth.js` y `login.js`, `crearCuenta.js`
-nuevo.
-**Checkpoint:** agregas tu correo a `usuarios_permitidos`, te registras tú
-mismo con tu propia contraseña, entras, ves tu rol correcto.
+nuevo (con el dropdown Obra/Facilitador y aviso de que el correo debe ser
+`@vidusa.com`).
+**Checkpoint:** cualquier persona con correo `@vidusa.com` se registra
+sola, sin que el Admin toque nada, y ve su rol correcto al entrar.
 
 ### Fase de build 4 — DTUs contra Supabase (CRUD real) [MVP]
 Reescribir `store.js`: crear/leer/editar/eliminar/cancelar DTUs en
@@ -134,13 +145,14 @@ en localStorage.
 
 ### Fase de build 6 — Verificar la seguridad real [MVP]
 Probar cada regla de permisos con cuentas reales, incluyendo intentos de
-saltarse la UI (llamadas directas a la API de Supabase) y de registrarse
-con un correo fuera de `usuarios_permitidos`.
+saltarse la UI (llamadas directas a la API de Supabase), registrarse con
+un correo fuera de `@vidusa.com`, y registrarse pidiendo un rol distinto
+a "residente"/"facilitador" (ej. "admin") por API directa.
 **Checkpoint:** cada regla se prueba en vivo y se comporta como debe.
 
-### Fase de build 7 — Alta de correos reales de Obra y Facilitadores [Post-MVP]
-Agregar los correos reales a `usuarios_permitidos`; cada quien se registra
-solo.
+### Fase de build 7 — Aviso al equipo real (Obra y Facilitadores) [Post-MVP]
+Avisarles del link para que cada quien se registre solo con su correo
+`@vidusa.com` real.
 **Checkpoint:** al menos una persona real entra por su cuenta y ve
 exactamente lo que su rol permite.
 
@@ -160,11 +172,16 @@ sección 3, se detiene la construcción y se actualiza este spec primero.
 - El registro es siempre auto-servicio (`signUp`) — nunca "Admin crea la
   cuenta desde la app", porque eso requeriría exponer una `service_role`
   key o construir una función serverless, que no es necesario aquí.
-- El control de acceso lo da la tabla `usuarios_permitidos` (correo + rol
-  pre-aprobado por el Admin), no un registro abierto a cualquiera.
-- Solo 2 roles se dan de alta por este flujo: **Obra** (Residente/
-  Superintendente) y **Facilitador**. Los Admins se manejan aparte, fuera
-  de este flujo de auto-registro.
-- La fase 7 (subir a todo el equipo real) es Post-MVP: es un paso de
-  lanzamiento/operación, no de desarrollo — no bloquea que el MVP se dé
+- El control de acceso es automático (sin curación manual del Admin por
+  persona): dominio de correo `@vidusa.com` + el usuario elige su propio
+  rol entre solo 2 opciones (Obra / Facilitador) al registrarse. Corregido
+  el 10/08/2026 — el diseño original con tabla `usuarios_permitidos`
+  curada a mano se descartó porque no es responsabilidad del Admin dar de
+  alta uno por uno.
+- Solo 2 roles se pueden auto-asignar por este flujo: **Obra** (guardado
+  como `rol = 'residente'`, mismo permiso que ya tenían Residente y
+  Superintendente en la app original) y **Facilitador**. Admin nunca es
+  una opción de registro — se maneja aparte.
+- La fase 7 (avisar al equipo real) es Post-MVP: es un paso de
+  lanzamiento/comunicación, no de desarrollo — no bloquea que el MVP se dé
   por terminado.

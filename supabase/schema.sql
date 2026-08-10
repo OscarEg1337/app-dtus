@@ -2,19 +2,7 @@
 -- Correr una sola vez en el SQL Editor de Supabase, en orden de arriba a abajo.
 
 -- ============================================================
--- 1. usuarios_permitidos — lista de correos que el Admin autoriza
---    a registrarse, con el rol que les toca. Sin fila aquí, un
---    correo NO puede crear cuenta funcional (ver trigger abajo).
--- ============================================================
-create table if not exists usuarios_permitidos (
-  correo text primary key,
-  rol text not null check (rol in ('residente', 'superintendente', 'facilitador', 'admin', 'analista')),
-  nombre text not null,
-  creado_en timestamptz not null default now()
-);
-
--- ============================================================
--- 2. profiles — un perfil por cada usuario real de auth.users,
+-- 1. profiles — un perfil por cada usuario real de auth.users,
 --    con su rol (fuente de verdad para las políticas RLS).
 -- ============================================================
 create table if not exists profiles (
@@ -26,7 +14,7 @@ create table if not exists profiles (
 );
 
 -- ============================================================
--- 3. dtus — un registro por solicitud de Dictamen Técnico Único.
+-- 2. dtus — un registro por solicitud de Dictamen Técnico Único.
 --    Mismos campos que el objeto DTU de la app (js/store.js).
 -- ============================================================
 create table if not exists dtus (
@@ -79,7 +67,7 @@ end;
 $$;
 
 -- ============================================================
--- 4. bitacora — auditoría de acciones (nunca se borra ni se edita).
+-- 3. bitacora — auditoría de acciones (nunca se borra ni se edita).
 -- ============================================================
 create table if not exists bitacora (
   id uuid primary key default gen_random_uuid(),
@@ -92,10 +80,15 @@ create table if not exists bitacora (
 );
 
 -- ============================================================
--- 5. Trigger de alta automática: al registrarse alguien (auth.users),
---    si su correo está en usuarios_permitidos, se le crea su profile
---    con el rol correspondiente. Si NO está autorizado, se rechaza el
---    registro por completo (RAISE EXCEPTION aborta la transacción).
+-- 4. Trigger de alta automática — 100% autoservicio, sin que el Admin
+--    dé de alta a nadie a mano. Al registrarse (auth.users insert):
+--    - el correo DEBE terminar en @vidusa.com, si no, se rechaza
+--    - el rol lo elige el usuario en el formulario ("Obra" o
+--      "Facilitador", nunca Admin) y viaja en raw_user_meta_data;
+--      si viene cualquier otro valor (ej. alguien intentando forzar
+--      "admin" por API directa), también se rechaza.
+--    RAISE EXCEPTION aborta la transacción completa: no queda ni el
+--    auth.users a medias.
 -- ============================================================
 create or replace function manejar_nuevo_usuario()
 returns trigger
@@ -103,16 +96,19 @@ language plpgsql
 security definer
 as $$
 declare
-  permitido usuarios_permitidos%rowtype;
+  rol_elegido text := new.raw_user_meta_data->>'rol';
+  nombre_elegido text := coalesce(new.raw_user_meta_data->>'nombre', new.email);
 begin
-  select * into permitido from usuarios_permitidos where correo = new.email;
+  if new.email !~* '@vidusa\.com$' then
+    raise exception 'Solo se permiten cuentas con correo @vidusa.com';
+  end if;
 
-  if not found then
-    raise exception 'Este correo no está autorizado para crear una cuenta. Pide al Admin que lo agregue primero.';
+  if rol_elegido not in ('residente', 'facilitador') then
+    raise exception 'Rol inválido: debe ser "residente" (Obra) o "facilitador"';
   end if;
 
   insert into profiles (id, correo, nombre, rol)
-  values (new.id, new.email, permitido.nombre, permitido.rol);
+  values (new.id, new.email, nombre_elegido, rol_elegido);
 
   return new;
 end;
