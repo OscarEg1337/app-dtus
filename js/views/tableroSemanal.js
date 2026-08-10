@@ -39,7 +39,13 @@ function renderTableroSemanal(session, semanaCodigo) {
   contentEl.innerHTML = `
     <div class="tablero">
       ${DIAS_TABLERO.map((dia) => {
-        const delDia = dtus.filter((d) => d.diaSolicitado === dia);
+        // Se agrupa por el día real de la Fecha (fuente de verdad), no por
+        // el texto "Día solicitado" — este último es editable a mano y
+        // puede quedar desfasado (p. ej. en registros de antes de que se
+        // agregara la validación día-vs-fecha al formulario). Así la
+        // tarjeta siempre aparece en la columna correcta sin depender de
+        // que alguien vuelva a guardar el registro para "corregirlo".
+        const delDia = dtus.filter((d) => diaDeSemana(d.fecha) === dia);
         return `
           <div class="tablero__columna">
             <div class="tablero__columna-header">
