@@ -96,10 +96,16 @@ function renderCalendario(session) {
                     .map(
                       (d) => `
                     <button type="button" class="calendario__chip" data-id="${esc(d.id)}">
-                      <span class="calendario__chip-frac">${esc(d.fraccionamiento)}</span>
+                      <div class="calendario__chip-top">
+                        <span class="calendario__chip-frac">${esc(d.fraccionamiento)}</span>
+                        ${pillEstatus(d.estatus)}
+                      </div>
                       <span class="calendario__chip-meta">CC ${esc(d.cc) || '—'} · Mz ${esc(d.manzana) || '—'} · Lt ${esc(d.lote) || '—'}</span>
                       <span class="calendario__chip-meta">Etapa ${esc(d.etapa) || '—'} · Rev ${esc(d.numeroRevision) || '—'}</span>
-                      <span class="calendario__chip-facilitador">${esc(d.facilitador) || 'Sin facilitador'}</span>
+                      <div class="calendario__chip-top">
+                        <span class="calendario__chip-facilitador">${esc(d.facilitador) || 'Sin facilitador'}</span>
+                        ${pillValidacion(d.validacionAdmin)}
+                      </div>
                     </button>`
                     )
                     .join('')}
