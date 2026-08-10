@@ -10,6 +10,18 @@
 const DIAS_SOLICITADOS = ['Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes', 'Sabado'];
 const ESTATUS_OPCIONES = ['', 'Cancelado', 'Operativo'];
 
+// "Cancelado" es la obra diciendo que ese DTU no se va a poder hacer a
+// tiempo — lo pone quien lo capturó (dueño del folio), no el Admin. Si el
+// Admin necesita quitar un registro (error de captura, duplicado), usa
+// Eliminar (borra el registro por completo); no debe "cancelarlo", porque
+// Cancelado sigue contando como DTU real en el Dashboard.
+function opcionesEstatus(session, dtuExistente) {
+  if (session.rol === 'admin' && dtuExistente?.estatus !== 'Cancelado') {
+    return ESTATUS_OPCIONES.filter((e) => e !== 'Cancelado');
+  }
+  return ESTATUS_OPCIONES;
+}
+
 function renderNuevaSolicitud(session, onGuardado, dtuExistente) {
   const editando = !!dtuExistente;
 
@@ -51,7 +63,7 @@ function renderNuevaSolicitud(session, onGuardado, dtuExistente) {
         <div class="field">
           <label for="ns-estatus">Estatus</label>
           <select id="ns-estatus">
-            ${ESTATUS_OPCIONES.map((e) => `<option value="${e}" ${e === dtuExistente?.estatus ? 'selected' : ''}>${e || '(Vacío)'}</option>`).join('')}
+            ${opcionesEstatus(session, dtuExistente).map((e) => `<option value="${e}" ${e === dtuExistente?.estatus ? 'selected' : ''}>${e || '(Vacío)'}</option>`).join('')}
           </select>
         </div>
         <div class="field">
