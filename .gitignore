@@ -1,1 +1,4 @@
 Tipografia&Video/
+node_modules/
+.env
+.env.local
