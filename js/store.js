@@ -3,6 +3,7 @@
 
 const DTUS_KEY = 'dtu_registros';
 const BITACORA_KEY = 'dtu_bitacora';
+const FOLIO_SEQ_KEY = 'dtu_folio_seq'; // { 'YYYYMMDD': ultima secuencia usada ese día }
 
 function leerDTUs() {
   const raw = localStorage.getItem(DTUS_KEY);
@@ -63,10 +64,21 @@ function describirCambios(anterior, actualizado) {
   return cambios.length > 0 ? cambios.join('; ') : 'sin cambios en los datos';
 }
 
-function generarFolio(dtusExistentes) {
+// Contador propio que solo sube, nunca por conteo de registros existentes
+// — si se contara por conteo, borrar un DTU y crear otro el mismo día le
+// reasigna al nuevo el folio exacto del que ya se borró (mismo bug que se
+// corrigió antes en BD 8D: "generar ID_Registro y Folio por maximo
+// existente, no por conteo"). Aquí un folio ya usado NUNCA se repite,
+// aunque el DTU que lo tenía se haya eliminado.
+function generarFolio() {
   const hoy = new Date();
   const fechaStr = hoy.getFullYear() + String(hoy.getMonth() + 1).padStart(2, '0') + String(hoy.getDate()).padStart(2, '0');
-  return `DTU-${fechaStr}-${String(dtusExistentes.length + 1).padStart(4, '0')}`;
+  const raw = localStorage.getItem(FOLIO_SEQ_KEY);
+  const secuencias = raw ? JSON.parse(raw) : {};
+  const siguiente = (secuencias[fechaStr] || 0) + 1;
+  secuencias[fechaStr] = siguiente;
+  localStorage.setItem(FOLIO_SEQ_KEY, JSON.stringify(secuencias));
+  return `DTU-${fechaStr}-${String(siguiente).padStart(4, '0')}`;
 }
 
 const Store = {
@@ -137,6 +149,22 @@ const Store = {
     return eliminado;
   },
 
+  // El dueño del folio (obra: Residente/Superintendente) cancela su propio
+  // DTU porque no van a poder terminarlo a tiempo — a diferencia de
+  // Eliminar, el registro NO se borra: sigue existiendo con
+  // Estatus="Cancelado" y sigue contando en el Dashboard (matriz, tarjeta
+  // Cancelados, tabla dinámica). El Admin no puede hacer esto (ver
+  // detalleDTU.js): si necesita quitar un registro por error, usa Eliminar.
+  cancelarDTU(id, session) {
+    const dtus = leerDTUs();
+    const idx = dtus.findIndex((d) => d.id === id);
+    if (idx === -1) throw new Error('DTU no encontrado.');
+    dtus[idx] = { ...dtus[idx], estatus: 'Cancelado' };
+    guardarDTUs(dtus);
+    registrarBitacora(session, 'Cancelar solicitud', `${dtus[idx].folio}: la obra lo canceló, no le va a dar tiempo de terminarlo`);
+    return dtus[idx];
+  },
+
   // Admin (Jefe/Coordinador) reasigna manualmente al Facilitador — para
   // cuando se empalman fechas o el Facilitador tiene otras actividades.
   reasignarFacilitador(id, nuevoFacilitador, session) {
@@ -174,7 +202,7 @@ const Store = {
 
     const dtu = {
       id: generarId('dtu'),
-      folio: generarFolio(dtus),
+      folio: generarFolio(),
       fraccionamiento: datos.fraccionamiento || '',
       superintendente: datos.superintendente || '',
       cc: datos.cc || '',
