@@ -12,6 +12,10 @@ function renderDetalleDTU(id, session) {
   const esFacilitadorAsignado = session.rol === 'facilitador' && session.nombre === dtu.facilitador;
   const esAdmin = session.rol === 'admin';
   const puedeEditar = Store.puedeEditar(dtu, session);
+  // Cancelar es acción de la obra (dueño del folio), no del Admin — el
+  // Admin ya no puede poner Estatus=Cancelado desde Editar (ver
+  // nuevaSolicitud.js); si necesita quitar el registro usa Eliminar.
+  const puedeCancelar = !esAdmin && session.correo === dtu.creadoPor && dtu.estatus !== 'Cancelado';
 
   Drawer.abrir(`
     <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
@@ -19,8 +23,9 @@ function renderDetalleDTU(id, session) {
         <h2>${esc(dtu.folio)}</h2>
         <p style="color:var(--texto-suave);margin-top:-8px">${esc(dtu.fraccionamiento)}</p>
       </div>
-      <div style="display:flex;gap:8px;flex:none">
+      <div style="display:flex;gap:8px;flex:none;flex-wrap:wrap;justify-content:flex-end">
         ${puedeEditar ? '<button type="button" id="btn-editar-dtu" class="btn-secundario">✏️ Editar</button>' : ''}
+        ${puedeCancelar ? '<button type="button" id="btn-cancelar-dtu" class="btn-cancelar">🚫 Cancelar</button>' : ''}
         ${esAdmin ? '<button type="button" id="btn-borrar-dtu" class="btn-borrar">🗑 Eliminar</button>' : ''}
       </div>
     </div>
@@ -51,7 +56,7 @@ function renderDetalleDTU(id, session) {
               <label for="dt-validacion">Validación por el administrador</label>
               <select id="dt-validacion">
                 ${VALIDACION_OPCIONES.map(
-                  (v) => `<option value="${v}" ${v === dtu.validacionAdmin ? 'selected' : ''}>${v || '(Vacío)'}</option>`
+                  (v) => `<option value="${v}" ${v === dtu.validacionAdmin ? 'selected' : ''}>${v || 'Proceso de validación'}</option>`
                 ).join('')}
               </select>
             </div>
@@ -86,6 +91,15 @@ function renderDetalleDTU(id, session) {
       if (!confirm(`¿Eliminar ${dtu.folio}? Esta acción no se puede deshacer.`)) return;
       Store.eliminarDTU(dtu.id, session);
       Drawer.cerrar();
+      renderDashboard();
+    });
+  }
+
+  if (puedeCancelar) {
+    document.getElementById('btn-cancelar-dtu').addEventListener('click', () => {
+      if (!confirm(`¿Cancelar ${dtu.folio}? Esto significa que la obra no va a poder terminarlo a tiempo. El registro NO se borra, sigue contando como Cancelado en el Dashboard.`)) return;
+      Store.cancelarDTU(dtu.id, session);
+      renderDetalleDTU(dtu.id, session);
       renderDashboard();
     });
   }
