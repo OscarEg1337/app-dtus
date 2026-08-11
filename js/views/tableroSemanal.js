@@ -1,9 +1,10 @@
-// tableroSemanal.js — tablero por semana Vidusa: columnas Lunes–Sábado con
-// tarjetas de DTU, para el alcance de cada rol (ver SPEC.md secciones 3 y 10).
-// Hace visibles los empalmes de un vistazo. Clic en una tarjeta abre el
-// detalle en el drawer.
-
-const DIAS_TABLERO = ['Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes', 'Sabado'];
+// tableroSemanal.js — tablero por semana Vidusa: columnas en el orden real
+// de la Semana Vidusa (Jueves→Miércoles, sin Domingo — ver
+// semanaVidusa.seed.js), no en orden de calendario Lunes→Sábado. Si se
+// mostrara Lunes primero, Jueves y Viernes (que SÍ son los primeros días
+// de la semana) aparecerían visualmente después de Miércoles (el último
+// día), y eso se presta a mal interpretar qué ya pasó y qué falta.
+const DIAS_TABLERO = ['Jueves', 'Viernes', 'Sabado', 'Lunes', 'Martes', 'Miercoles'];
 
 function iniciales(nombre) {
   return String(nombre || '')
