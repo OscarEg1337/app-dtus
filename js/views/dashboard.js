@@ -54,6 +54,7 @@ function renderDashboard() {
             <button type="button" class="btn-semana" id="btn-semana-prev" aria-label="Semana anterior">←</button>
             <span id="etiqueta-semana">${esc(SemanaVidusa.etiqueta(semanaSeleccionada))}</span>
             <button type="button" class="btn-semana" id="btn-semana-next" aria-label="Semana siguiente">→</button>
+            <span id="contador-semana" class="topbar__contador-semana"></span>
           </div>`
               : ''
           }

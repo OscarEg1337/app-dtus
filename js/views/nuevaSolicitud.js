@@ -47,7 +47,7 @@ function renderNuevaSolicitud(session, onGuardado, dtuExistente) {
         </div>
         <div class="field">
           <label for="ns-cc">CC</label>
-          <input id="ns-cc" type="text" required value="${esc(dtuExistente?.cc || '')}">
+          <input id="ns-cc" type="text" required value="${esc(dtuExistente?.cc || '')}" style="text-transform:uppercase">
         </div>
         <div class="field">
           <label for="ns-dia">Día solicitado</label>
@@ -58,21 +58,27 @@ function renderNuevaSolicitud(session, onGuardado, dtuExistente) {
         </div>
         <div class="field">
           <label for="ns-etapa">Etapa</label>
-          <input id="ns-etapa" type="text" required value="${esc(dtuExistente?.etapa || '')}">
+          <input id="ns-etapa" type="text" required value="${esc(dtuExistente?.etapa || '')}" style="text-transform:uppercase">
         </div>
+        ${
+          editando
+            ? `
         <div class="field">
           <label for="ns-estatus">Estatus</label>
           <select id="ns-estatus">
             ${opcionesEstatus(session, dtuExistente).map((e) => `<option value="${e}" ${e === dtuExistente?.estatus ? 'selected' : ''}>${e || '(Vacío)'}</option>`).join('')}
           </select>
         </div>
+        `
+            : '' /* Al crear siempre es Operativo — Cancelado solo se pone al editar (o con el botón Cancelar), nunca de entrada. */
+        }
         <div class="field">
           <label for="ns-manzana">Manzana</label>
-          <input id="ns-manzana" type="text" required value="${esc(dtuExistente?.manzana || '')}">
+          <input id="ns-manzana" type="text" required value="${esc(dtuExistente?.manzana || '')}" style="text-transform:uppercase">
         </div>
         <div class="field">
           <label for="ns-lote">Lote</label>
-          <input id="ns-lote" type="text" maxlength="2" required value="${esc(dtuExistente?.lote || '')}">
+          <input id="ns-lote" type="text" maxlength="2" required value="${esc(dtuExistente?.lote || '')}" style="text-transform:uppercase">
         </div>
         <div class="field">
           <label for="ns-fecha">Fecha</label>
@@ -121,21 +127,35 @@ function renderNuevaSolicitud(session, onGuardado, dtuExistente) {
   inputFecha.addEventListener('change', actualizarAutollenado);
   if (editando) actualizarAutollenado(); // los campos ya vienen precargados, sin evento 'change'
 
+  // Mayúsculas de verdad (no solo visual con CSS) mientras escriben, sin
+  // necesitar Bloq Mayús — conserva la posición del cursor.
+  ['ns-cc', 'ns-etapa', 'ns-manzana', 'ns-lote'].forEach((id) => {
+    const el = document.getElementById(id);
+    el.addEventListener('input', () => {
+      const pos = el.selectionStart;
+      el.value = el.value.toUpperCase();
+      el.setSelectionRange(pos, pos);
+    });
+  });
+
   document.getElementById('form-solicitud').addEventListener('submit', async (e) => {
     e.preventDefault();
     const errorEl = document.getElementById('ns-error');
     const resultadoEl = document.getElementById('ns-resultado');
     const submitEl = e.target.querySelector('button[type="submit"]');
 
+    const campoEstatus = document.getElementById('ns-estatus');
     const datos = {
       fraccionamiento: selFraccionamiento.value,
       superintendente: inputSuperintendente.value,
-      cc: document.getElementById('ns-cc').value.trim(),
+      cc: document.getElementById('ns-cc').value.trim().toUpperCase(),
       diaSolicitado: document.getElementById('ns-dia').value,
-      etapa: document.getElementById('ns-etapa').value.trim(),
-      estatus: document.getElementById('ns-estatus').value,
-      manzana: document.getElementById('ns-manzana').value.trim(),
-      lote: document.getElementById('ns-lote').value.trim(),
+      etapa: document.getElementById('ns-etapa').value.trim().toUpperCase(),
+      // Al crear no hay campo Estatus en el formulario — siempre nace
+      // Operativo; Cancelado solo se pone editando (o con el botón Cancelar).
+      estatus: campoEstatus ? campoEstatus.value : 'Operativo',
+      manzana: document.getElementById('ns-manzana').value.trim().toUpperCase(),
+      lote: document.getElementById('ns-lote').value.trim().toUpperCase(),
       fecha: inputFecha.value,
       numeroRevision: document.getElementById('ns-revision').value,
     };

@@ -301,6 +301,13 @@ h1, h2, h3,
   padding: 6px 14px;
 }
 
+.topbar__contador-semana {
+  color: var(--verde-brillante);
+  font-weight: 600;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
 .btn-semana {
   width: 24px;
   height: 24px;

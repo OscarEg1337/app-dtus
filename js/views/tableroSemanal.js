@@ -24,7 +24,7 @@ function tarjetaDTU(d) {
         ${pillEstatus(d.estatus)}
       </div>
       <div class="tarjeta-dtu__frac">${esc(d.fraccionamiento)}</div>
-      <div class="tarjeta-dtu__meta">Mz ${esc(d.manzana) || '—'} · Lt ${esc(d.lote) || '—'} · Rev ${esc(d.numeroRevision)}</div>
+      <div class="tarjeta-dtu__meta">CC ${esc(d.cc) || '—'} · Mz ${esc(d.manzana) || '—'} · Lt ${esc(d.lote) || '—'} · Rev ${esc(d.numeroRevision)}</div>
       <div class="tarjeta-dtu__pie">
         <span class="chip-facilitador" title="${esc(d.facilitador)}">${esc(iniciales(d.facilitador)) || '—'}</span>
         ${pillValidacion(d.validacionAdmin)}
@@ -40,6 +40,9 @@ async function renderTableroSemanal(session, semanaCodigo) {
   const todos = await Store.getDTUsPorSesion(session);
   if (!esRenderVigente(miToken)) return;
   const dtus = todos.filter((d) => d.semanaVidusa === semanaCodigo);
+
+  const contadorEl = document.getElementById('contador-semana');
+  if (contadorEl) contadorEl.textContent = `· ${dtus.length} DTU${dtus.length === 1 ? '' : 's'} asignados`;
 
   contentEl.innerHTML = `
     <div class="tablero">

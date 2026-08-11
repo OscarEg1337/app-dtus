@@ -124,6 +124,46 @@ begin
 end;
 $$;
 
+-- No permitir un DTU "gemelo" de otro ya existente (mismo Fraccionamiento,
+-- CC, Manzana, Lote, Fecha, Etapa y No. de Revisión) — si es de verdad una
+-- revisión nueva del mismo lote, el usuario tiene que subir el Número de
+-- Revisión; eso es lo único que puede distinguirlos. Corre con permisos
+-- elevados porque Obra solo puede leer sus propios DTUs por RLS, pero el
+-- duplicado se tiene que checar contra TODOS los DTUs, no solo los suyos.
+create or replace function validar_duplicado_dtu()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  existe boolean;
+begin
+  select exists (
+    select 1 from dtus
+    where id != coalesce(new.id, '00000000-0000-0000-0000-000000000000'::uuid)
+      and upper(fraccionamiento) = upper(coalesce(new.fraccionamiento, ''))
+      and upper(coalesce(cc, '')) = upper(coalesce(new.cc, ''))
+      and upper(coalesce(manzana, '')) = upper(coalesce(new.manzana, ''))
+      and upper(coalesce(lote, '')) = upper(coalesce(new.lote, ''))
+      and fecha = new.fecha
+      and upper(coalesce(etapa, '')) = upper(coalesce(new.etapa, ''))
+      and numero_revision = new.numero_revision
+  ) into existe;
+
+  if existe then
+    raise exception 'Ya existe un DTU con los mismos datos (Fraccionamiento, CC, Manzana, Lote, Fecha, Etapa y No. de Revisión). Si es una revisión nueva, cambia el Número de Revisión.';
+  end if;
+
+  return new;
+end;
+$$;
+
+drop trigger if exists trg_validar_duplicado_dtu on dtus;
+create trigger trg_validar_duplicado_dtu
+  before insert or update on dtus
+  for each row execute function validar_duplicado_dtu();
+
 -- ============================================================
 -- 3. bitacora — auditoría de acciones (nunca se borra ni se edita).
 -- ============================================================
