@@ -104,7 +104,7 @@ function renderNuevaSolicitud(session, onGuardado, dtuExistente) {
   const inputFecha = document.getElementById('ns-fecha');
   const previewEl = document.getElementById('ns-facilitador-preview');
 
-  function actualizarAutollenado() {
+  async function actualizarAutollenado() {
     const frac = Store.getFraccionamientoPorNombre(selFraccionamiento.value);
     inputSuperintendente.value = frac ? frac.superintendente : '';
 
@@ -112,7 +112,8 @@ function renderNuevaSolicitud(session, onGuardado, dtuExistente) {
       previewEl.textContent = 'Elige Fraccionamiento para ver quién te toca.';
       return;
     }
-    const facilitador = Asignacion.obtenerFacilitador(frac.nombre, inputFecha.value, Store.getTodosDTUs());
+    previewEl.textContent = 'Calculando...';
+    const facilitador = await Asignacion.obtenerFacilitador(frac.nombre, inputFecha.value, dtuExistente?.id || null);
     previewEl.textContent = facilitador || 'Sin facilitador disponible para este frente.';
   }
 
@@ -120,10 +121,11 @@ function renderNuevaSolicitud(session, onGuardado, dtuExistente) {
   inputFecha.addEventListener('change', actualizarAutollenado);
   if (editando) actualizarAutollenado(); // los campos ya vienen precargados, sin evento 'change'
 
-  document.getElementById('form-solicitud').addEventListener('submit', (e) => {
+  document.getElementById('form-solicitud').addEventListener('submit', async (e) => {
     e.preventDefault();
     const errorEl = document.getElementById('ns-error');
     const resultadoEl = document.getElementById('ns-resultado');
+    const submitEl = e.target.querySelector('button[type="submit"]');
 
     const datos = {
       fraccionamiento: selFraccionamiento.value,
@@ -150,7 +152,19 @@ function renderNuevaSolicitud(session, onGuardado, dtuExistente) {
     }
 
     errorEl.textContent = '';
-    const dtu = editando ? Store.actualizarDTU(dtuExistente.id, datos, session) : Store.crearDTU(datos, session);
+    submitEl.disabled = true;
+    submitEl.textContent = 'Guardando...';
+    let dtu;
+    try {
+      dtu = editando ? await Store.actualizarDTU(dtuExistente.id, datos, session) : await Store.crearDTU(datos, session);
+    } catch (err) {
+      submitEl.disabled = false;
+      submitEl.textContent = editando ? 'Guardar cambios' : 'Guardar solicitud';
+      errorEl.textContent = err.message || 'No se pudo guardar, intenta de nuevo.';
+      return;
+    }
+    submitEl.disabled = false;
+    submitEl.textContent = editando ? 'Guardar cambios' : 'Guardar solicitud';
 
     resultadoEl.innerHTML = `
       <div class="card" style="margin-top:16px;background:var(--panel-2)">

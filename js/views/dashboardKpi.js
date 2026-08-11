@@ -136,9 +136,12 @@ function calcularPivotValidacion(dtus, codigoSemana) {
   return { columnas, frentes, porFrente, totalesColumna, totalGeneral };
 }
 
-function renderDashboardKpi(session) {
+async function renderDashboardKpi(session) {
+  const miToken = empezarRenderContent();
   const contentEl = document.getElementById('app-content');
-  const dtus = Store.getDTUsPorSesion(session);
+  contentEl.innerHTML = '<p style="padding:20px">Cargando...</p>';
+  const dtus = await Store.getDTUsPorSesion(session);
+  if (!esRenderVigente(miToken)) return;
   const { semanas, porFrente } = calcularMatrizCancelacion(dtus);
   const frentes = Store.getFraccionamientos().map((f) => f.nombre);
   const resumen = calcularResumenKpi(dtus, porFrente);

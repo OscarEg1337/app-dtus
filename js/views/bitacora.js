@@ -1,9 +1,13 @@
-// bitacora.js — auditoría dentro de la app: quién hizo qué y cuándo
-// (ver SPEC.md sección 11). Visible solo para Admin.
+// bitacora.js — auditoría dentro de la app: quién hizo qué y cuándo.
+// Visible solo para Admin.
 
-function renderBitacora(session) {
+async function renderBitacora(session) {
+  const miToken = empezarRenderContent();
   const contentEl = document.getElementById('app-content');
-  const entradas = Store.getBitacora();
+  contentEl.innerHTML = '<div class="card"><p>Cargando bitácora...</p></div>';
+
+  const entradas = await Store.getBitacora();
+  if (!esRenderVigente(miToken)) return;
 
   contentEl.innerHTML = `
     <div class="card">

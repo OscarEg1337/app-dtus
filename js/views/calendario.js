@@ -19,11 +19,14 @@ function fechaAISO(d) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
-function renderCalendario(session) {
+async function renderCalendario(session) {
+  const miToken = empezarRenderContent();
   if (!calMesRef) calMesRef = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
 
   const contentEl = document.getElementById('app-content');
-  let dtus = Store.getDTUsPorSesion(session);
+  contentEl.innerHTML = '<p style="padding:20px">Cargando...</p>';
+  let dtus = await Store.getDTUsPorSesion(session);
+  if (!esRenderVigente(miToken)) return;
   if (calFacilitadorFiltro) dtus = dtus.filter((d) => d.facilitador === calFacilitadorFiltro);
   if (calSuperintendenteFiltro) dtus = dtus.filter((d) => d.superintendente === calSuperintendenteFiltro);
   if (calFraccionamientoFiltro) dtus = dtus.filter((d) => d.fraccionamiento === calFraccionamientoFiltro);

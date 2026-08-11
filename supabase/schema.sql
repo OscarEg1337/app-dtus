@@ -66,6 +66,64 @@ begin
 end;
 $$;
 
+-- Asignación de Facilitador: Obra (Residente/Superintendente) solo puede
+-- LEER sus propios DTUs por RLS, pero el reparto de carga necesita ver
+-- los DTUs de TODOS para contar bien — por eso corre aquí, con permisos
+-- elevados (security definer), en vez de en el navegador. El catálogo de
+-- Fraccionamiento/Facilitadores sigue viviendo solo en el JS
+-- (fraccionamientos.seed.js); esta función recibe la lista de
+-- facilitadores candidatos como parámetro, no duplica el catálogo.
+create or replace function asignar_facilitador(
+  p_fraccionamiento text,
+  p_fecha date,
+  p_facilitadores text[],
+  p_rotacion_estricta boolean,
+  p_excluir_id uuid default null
+)
+returns text
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  conteo int;
+begin
+  if p_facilitadores is null or array_length(p_facilitadores, 1) is null then
+    return null;
+  end if;
+
+  -- Rotación estricta 1:1 (solo ADARA): cuenta TODOS los DTUs de ese
+  -- fraccionamiento y alterna por posición — igual que Asignacion.js.
+  if p_rotacion_estricta then
+    select count(*) into conteo
+    from dtus
+    where upper(fraccionamiento) = upper(p_fraccionamiento)
+      and (p_excluir_id is null or id != p_excluir_id);
+    return p_facilitadores[(conteo % array_length(p_facilitadores, 1)) + 1];
+  end if;
+
+  if p_fecha is null then
+    return p_facilitadores[1];
+  end if;
+
+  -- Reparto por carga: el de menor carga ese día gana. El mínimo global
+  -- ya respeta el tope de 2 (si alguno tiene <2, el mínimo será <2).
+  return (
+    select f
+    from unnest(p_facilitadores) as f
+    left join (
+      select facilitador, count(*) as carga
+      from dtus
+      where fecha = p_fecha
+        and (p_excluir_id is null or id != p_excluir_id)
+      group by facilitador
+    ) c on c.facilitador = f
+    order by coalesce(c.carga, 0) asc, f asc
+    limit 1
+  );
+end;
+$$;
+
 -- ============================================================
 -- 3. bitacora — auditoría de acciones (nunca se borra ni se edita).
 -- ============================================================

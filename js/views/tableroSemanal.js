@@ -32,9 +32,13 @@ function tarjetaDTU(d) {
   `;
 }
 
-function renderTableroSemanal(session, semanaCodigo) {
+async function renderTableroSemanal(session, semanaCodigo) {
+  const miToken = empezarRenderContent();
   const contentEl = document.getElementById('app-content');
-  const dtus = Store.getDTUsPorSesion(session).filter((d) => d.semanaVidusa === semanaCodigo);
+  contentEl.innerHTML = '<p style="padding:20px">Cargando...</p>';
+  const todos = await Store.getDTUsPorSesion(session);
+  if (!esRenderVigente(miToken)) return;
+  const dtus = todos.filter((d) => d.semanaVidusa === semanaCodigo);
 
   contentEl.innerHTML = `
     <div class="tablero">

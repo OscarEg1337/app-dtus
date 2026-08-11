@@ -5,8 +5,8 @@
 
 const VALIDACION_OPCIONES = ['', 'Cancelado', 'No paso el DTU', 'Paso el DTU'];
 
-function renderDetalleDTU(id, session) {
-  const dtu = Store.getDTU(id);
+async function renderDetalleDTU(id, session) {
+  const dtu = await Store.getDTU(id);
   if (!dtu) return;
 
   const esFacilitadorAsignado = session.rol === 'facilitador' && session.nombre === dtu.facilitador;
@@ -15,7 +15,7 @@ function renderDetalleDTU(id, session) {
   // Cancelar es acción de la obra (dueño del folio), no del Admin — el
   // Admin ya no puede poner Estatus=Cancelado desde Editar (ver
   // nuevaSolicitud.js); si necesita quitar el registro usa Eliminar.
-  const puedeCancelar = !esAdmin && session.correo === dtu.creadoPor && dtu.estatus !== 'Cancelado';
+  const puedeCancelar = !esAdmin && session.id === dtu.creadoPor && dtu.estatus !== 'Cancelado';
 
   Drawer.abrir(`
     <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
@@ -87,27 +87,27 @@ function renderDetalleDTU(id, session) {
   }
 
   if (esAdmin) {
-    document.getElementById('btn-borrar-dtu').addEventListener('click', () => {
+    document.getElementById('btn-borrar-dtu').addEventListener('click', async () => {
       if (!confirm(`¿Eliminar ${dtu.folio}? Esta acción no se puede deshacer.`)) return;
-      Store.eliminarDTU(dtu.id, session);
+      await Store.eliminarDTU(dtu.id, session);
       Drawer.cerrar();
       renderDashboard();
     });
   }
 
   if (puedeCancelar) {
-    document.getElementById('btn-cancelar-dtu').addEventListener('click', () => {
+    document.getElementById('btn-cancelar-dtu').addEventListener('click', async () => {
       if (!confirm(`¿Cancelar ${dtu.folio}? Esto significa que la obra no va a poder terminarlo a tiempo. El registro NO se borra, sigue contando como Cancelado en el Dashboard.`)) return;
-      Store.cancelarDTU(dtu.id, session);
+      await Store.cancelarDTU(dtu.id, session);
       renderDetalleDTU(dtu.id, session);
       renderDashboard();
     });
   }
 
   if (esFacilitadorAsignado) {
-    document.getElementById('form-validacion').addEventListener('submit', (e) => {
+    document.getElementById('form-validacion').addEventListener('submit', async (e) => {
       e.preventDefault();
-      Store.actualizarValidacion(
+      await Store.actualizarValidacion(
         dtu.id,
         document.getElementById('dt-validacion').value,
         document.getElementById('dt-comentarios').value.trim(),
@@ -119,9 +119,9 @@ function renderDetalleDTU(id, session) {
   }
 
   if (esAdmin) {
-    document.getElementById('btn-reasignar').addEventListener('click', () => {
+    document.getElementById('btn-reasignar').addEventListener('click', async () => {
       const nuevo = document.getElementById('dt-nuevo-facilitador').value;
-      Store.reasignarFacilitador(dtu.id, nuevo, session);
+      await Store.reasignarFacilitador(dtu.id, nuevo, session);
       renderDetalleDTU(dtu.id, session);
       renderDashboard();
     });

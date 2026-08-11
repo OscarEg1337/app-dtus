@@ -1,40 +1,42 @@
-// store.js — capa de datos sobre localStorage. Se completa en la Fase 3
-// (Nueva Solicitud) del SPEC — por ahora solo el esqueleto.
+// store.js — capa de datos sobre Supabase (ver SPEC_MIGRACION_SUPABASE.md,
+// Fase de build 4). Todas las funciones son async: hacen queries reales.
+// El filtrado por rol (quién ve qué DTU) ya lo hace RLS en el servidor —
+// aquí simplemente se pide todo y Supabase regresa nada más lo permitido.
 
-const DTUS_KEY = 'dtu_registros';
-const BITACORA_KEY = 'dtu_bitacora';
-const FOLIO_SEQ_KEY = 'dtu_folio_seq'; // { 'YYYYMMDD': ultima secuencia usada ese día }
-
-function leerDTUs() {
-  const raw = localStorage.getItem(DTUS_KEY);
-  return raw ? JSON.parse(raw) : [];
+// ---- Traducción entre las columnas de Postgres (snake_case) y los
+// objetos que usa el resto de la app (camelCase, mismo formato de siempre).
+function filaAObjetoDTU(fila) {
+  return {
+    id: fila.id,
+    folio: fila.folio,
+    fraccionamiento: fila.fraccionamiento || '',
+    superintendente: fila.superintendente || '',
+    cc: fila.cc || '',
+    diaSolicitado: fila.dia_solicitado || '',
+    etapa: fila.etapa || '',
+    estatus: fila.estatus || '',
+    manzana: fila.manzana || '',
+    lote: fila.lote || '',
+    fecha: fila.fecha || '',
+    numeroRevision: String(fila.numero_revision ?? '1'),
+    facilitador: fila.facilitador || '',
+    validacionAdmin: fila.validacion_admin || '',
+    comentarios: fila.comentarios || '',
+    semanaVidusa: fila.semana_vidusa || '',
+    creadoPor: fila.creado_por,
+    creadoEn: fila.creado_en,
+  };
 }
 
-function guardarDTUs(dtus) {
-  localStorage.setItem(DTUS_KEY, JSON.stringify(dtus));
-}
-
-function leerBitacora() {
-  const raw = localStorage.getItem(BITACORA_KEY);
-  return raw ? JSON.parse(raw) : [];
-}
-
-function guardarBitacora(entradas) {
-  localStorage.setItem(BITACORA_KEY, JSON.stringify(entradas));
-}
-
-// Registra quién hizo qué y cuándo — ver SPEC.md sección 11 (Bitácora).
-function registrarBitacora(session, accion, detalle) {
-  const entradas = leerBitacora();
-  entradas.push({
-    id: generarId('log'),
-    fecha: new Date().toISOString(),
-    usuarioCorreo: session.correo,
-    usuarioNombre: session.nombre,
-    accion,
-    detalle,
-  });
-  guardarBitacora(entradas);
+function filaABitacora(fila) {
+  return {
+    id: fila.id,
+    fecha: fila.fecha,
+    usuarioCorreo: fila.usuario_correo,
+    usuarioNombre: fila.usuario_nombre,
+    accion: fila.accion,
+    detalle: fila.detalle,
+  };
 }
 
 // Nombres legibles de los campos que se pueden editar, para que la
@@ -64,23 +66,6 @@ function describirCambios(anterior, actualizado) {
   return cambios.length > 0 ? cambios.join('; ') : 'sin cambios en los datos';
 }
 
-// Contador propio que solo sube, nunca por conteo de registros existentes
-// — si se contara por conteo, borrar un DTU y crear otro el mismo día le
-// reasigna al nuevo el folio exacto del que ya se borró (mismo bug que se
-// corrigió antes en BD 8D: "generar ID_Registro y Folio por maximo
-// existente, no por conteo"). Aquí un folio ya usado NUNCA se repite,
-// aunque el DTU que lo tenía se haya eliminado.
-function generarFolio() {
-  const hoy = new Date();
-  const fechaStr = hoy.getFullYear() + String(hoy.getMonth() + 1).padStart(2, '0') + String(hoy.getDate()).padStart(2, '0');
-  const raw = localStorage.getItem(FOLIO_SEQ_KEY);
-  const secuencias = raw ? JSON.parse(raw) : {};
-  const siguiente = (secuencias[fechaStr] || 0) + 1;
-  secuencias[fechaStr] = siguiente;
-  localStorage.setItem(FOLIO_SEQ_KEY, JSON.stringify(secuencias));
-  return `DTU-${fechaStr}-${String(siguiente).padStart(4, '0')}`;
-}
-
 const Store = {
   getFraccionamientos() {
     return FRACCIONAMIENTOS_SEED;
@@ -91,8 +76,6 @@ const Store = {
     return FRACCIONAMIENTOS_SEED.find((f) => f.nombre.toUpperCase() === buscado) || null;
   },
 
-  // Listas completas para filtros y para reasignación manual (Admin puede
-  // reasignar a CUALQUIER facilitador, no solo a los "normales" de ese frente).
   getTodosFacilitadores() {
     const set = new Set();
     FRACCIONAMIENTOS_SEED.forEach((f) => f.facilitadores.forEach((n) => set.add(n)));
@@ -105,125 +88,148 @@ const Store = {
     return [...set].sort((a, b) => a.localeCompare(b, 'es'));
   },
 
-  getTodosDTUs() {
-    return leerDTUs();
+  async getTodosDTUs() {
+    const { data, error } = await supabaseClient.from('dtus').select('*');
+    if (error) throw error;
+    return (data || []).map(filaAObjetoDTU);
   },
 
-  getDTU(id) {
-    return leerDTUs().find((d) => d.id === id) || null;
+  async getDTU(id) {
+    const { data, error } = await supabaseClient.from('dtus').select('*').eq('id', id).maybeSingle();
+    if (error) throw error;
+    return data ? filaAObjetoDTU(data) : null;
   },
 
-  getBitacora() {
-    return leerBitacora().slice().reverse(); // más reciente primero
+  async getBitacora() {
+    const { data, error } = await supabaseClient
+      .from('bitacora')
+      .select('*')
+      .order('fecha', { ascending: false });
+    if (error) throw error;
+    return (data || []).map(filaABitacora);
   },
 
-  // El dueño (quien lo creó) o Admin pueden editar los datos base — por
-  // si se equivocaron al capturar.
+  // El dueño (quien lo creó) o Admin pueden editar los datos base.
   puedeEditar(dtu, session) {
-    return session.rol === 'admin' || session.correo === dtu.creadoPor;
+    return session.rol === 'admin' || session.id === dtu.creadoPor;
   },
 
-  // Alcance por rol (SPEC.md sección 3): Residente/Superintendente ven lo
-  // que ellos capturaron; Facilitador ve lo que le toca a él/ella;
-  // Admin/Analista ven todo.
-  getDTUsPorSesion(session) {
-    const dtus = leerDTUs();
-    if (session.rol === 'residente' || session.rol === 'superintendente') {
-      return dtus.filter((d) => d.creadoPor === session.correo);
-    }
-    if (session.rol === 'facilitador') {
-      return dtus.filter((d) => d.facilitador === session.nombre);
-    }
-    return dtus; // admin, analista
+  // RLS ya filtra por rol en el servidor (Obra ve lo suyo, Facilitador lo
+  // suyo, Admin/Analista todo) — aquí solo se pide todo.
+  async getDTUsPorSesion(session) {
+    return this.getTodosDTUs();
+  },
+
+  async registrarBitacora(session, accion, detalle) {
+    const { error } = await supabaseClient.from('bitacora').insert({
+      usuario_id: session.id,
+      usuario_correo: session.correo,
+      usuario_nombre: session.nombre,
+      accion,
+      detalle,
+    });
+    if (error) throw error;
   },
 
   // Solo Admin puede borrar un DTU (por error de captura irrecuperable,
   // duplicado, etc.) — queda registrado en la Bitácora.
-  eliminarDTU(id, session) {
-    const dtus = leerDTUs();
-    const idx = dtus.findIndex((d) => d.id === id);
-    if (idx === -1) throw new Error('DTU no encontrado.');
-    const [eliminado] = dtus.splice(idx, 1);
-    guardarDTUs(dtus);
-    registrarBitacora(session, 'Eliminar solicitud', `${eliminado.folio} (${eliminado.fraccionamiento})`);
-    return eliminado;
+  async eliminarDTU(id, session) {
+    const dtu = await this.getDTU(id);
+    if (!dtu) throw new Error('DTU no encontrado.');
+    const { error } = await supabaseClient.from('dtus').delete().eq('id', id);
+    if (error) throw error;
+    await this.registrarBitacora(session, 'Eliminar solicitud', `${dtu.folio} (${dtu.fraccionamiento})`);
+    return dtu;
   },
 
   // El dueño del folio (obra: Residente/Superintendente) cancela su propio
   // DTU porque no van a poder terminarlo a tiempo — a diferencia de
   // Eliminar, el registro NO se borra: sigue existiendo con
-  // Estatus="Cancelado" y sigue contando en el Dashboard (matriz, tarjeta
-  // Cancelados, tabla dinámica). El Admin no puede hacer esto (ver
-  // detalleDTU.js): si necesita quitar un registro por error, usa Eliminar.
-  cancelarDTU(id, session) {
-    const dtus = leerDTUs();
-    const idx = dtus.findIndex((d) => d.id === id);
-    if (idx === -1) throw new Error('DTU no encontrado.');
-    dtus[idx] = { ...dtus[idx], estatus: 'Cancelado' };
-    guardarDTUs(dtus);
-    registrarBitacora(session, 'Cancelar solicitud', `${dtus[idx].folio}: la obra lo canceló, no le va a dar tiempo de terminarlo`);
-    return dtus[idx];
+  // Estatus="Cancelado" y sigue contando en el Dashboard. El Admin no
+  // puede hacer esto (bloqueado también por RLS, ver supabase/policies.sql).
+  async cancelarDTU(id, session) {
+    const { data, error } = await supabaseClient
+      .from('dtus')
+      .update({ estatus: 'Cancelado' })
+      .eq('id', id)
+      .select()
+      .single();
+    if (error) throw error;
+    const actualizado = filaAObjetoDTU(data);
+    await this.registrarBitacora(
+      session,
+      'Cancelar solicitud',
+      `${actualizado.folio}: la obra lo canceló, no le va a dar tiempo de terminarlo`
+    );
+    return actualizado;
   },
 
-  // Admin (Jefe/Coordinador) reasigna manualmente al Facilitador — para
-  // cuando se empalman fechas o el Facilitador tiene otras actividades.
-  reasignarFacilitador(id, nuevoFacilitador, session) {
-    const dtus = leerDTUs();
-    const idx = dtus.findIndex((d) => d.id === id);
-    if (idx === -1) throw new Error('DTU no encontrado.');
-    const anterior = dtus[idx].facilitador;
-    dtus[idx] = { ...dtus[idx], facilitador: nuevoFacilitador || '' };
-    guardarDTUs(dtus);
-    registrarBitacora(
+  // Admin (Jefe/Coordinador) reasigna manualmente al Facilitador.
+  async reasignarFacilitador(id, nuevoFacilitador, session) {
+    const anterior = await this.getDTU(id);
+    if (!anterior) throw new Error('DTU no encontrado.');
+    const { data, error } = await supabaseClient
+      .from('dtus')
+      .update({ facilitador: nuevoFacilitador || '' })
+      .eq('id', id)
+      .select()
+      .single();
+    if (error) throw error;
+    const actualizado = filaAObjetoDTU(data);
+    await this.registrarBitacora(
       session,
       'Reasignar Facilitador',
-      `${dtus[idx].folio}: "${anterior || '(vacío)'}" → "${nuevoFacilitador || '(vacío)'}"`
+      `${actualizado.folio}: "${anterior.facilitador || '(vacío)'}" → "${nuevoFacilitador || '(vacío)'}"`
     );
-    return dtus[idx];
+    return actualizado;
   },
 
   // El Facilitador captura el resultado de su revisión.
-  actualizarValidacion(id, validacionAdmin, comentarios, session) {
-    const dtus = leerDTUs();
-    const idx = dtus.findIndex((d) => d.id === id);
-    if (idx === -1) throw new Error('DTU no encontrado.');
-    dtus[idx] = { ...dtus[idx], validacionAdmin: validacionAdmin || '', comentarios: comentarios || '' };
-    guardarDTUs(dtus);
-    registrarBitacora(session, 'Capturar Validación', `${dtus[idx].folio}: "${validacionAdmin || '(vacío)'}"`);
-    return dtus[idx];
+  async actualizarValidacion(id, validacionAdmin, comentarios, session) {
+    const { data, error } = await supabaseClient
+      .from('dtus')
+      .update({ validacion_admin: validacionAdmin || '', comentarios: comentarios || '' })
+      .eq('id', id)
+      .select()
+      .single();
+    if (error) throw error;
+    const actualizado = filaAObjetoDTU(data);
+    await this.registrarBitacora(session, 'Capturar Validación', `${actualizado.folio}: "${validacionAdmin || '(vacío)'}"`);
+    return actualizado;
   },
 
   // Residente/Superintendente crean la solicitud. El Facilitador y la
-  // Semana Vidusa se calculan solos (ver SPEC.md secciones 4 y 5).
-  crearDTU(datos, session) {
-    const dtus = leerDTUs();
-    const facilitador = Asignacion.obtenerFacilitador(datos.fraccionamiento, datos.fecha, dtus);
+  // Semana Vidusa se calculan solos.
+  async crearDTU(datos, session) {
+    const facilitador = await Asignacion.obtenerFacilitador(datos.fraccionamiento, datos.fecha, null);
     const semanaVidusa = SemanaVidusa.buscar(datos.fecha);
+    const { data: folio, error: errorFolio } = await supabaseClient.rpc('siguiente_folio');
+    if (errorFolio) throw errorFolio;
 
-    const dtu = {
-      id: generarId('dtu'),
-      folio: generarFolio(),
+    const fila = {
+      folio,
       fraccionamiento: datos.fraccionamiento || '',
       superintendente: datos.superintendente || '',
       cc: datos.cc || '',
-      diaSolicitado: datos.diaSolicitado || '',
+      dia_solicitado: datos.diaSolicitado || '',
       etapa: datos.etapa || '',
       estatus: datos.estatus || '',
       manzana: datos.manzana || '',
       lote: String(datos.lote || '').slice(0, 2),
       fecha: datos.fecha || '',
-      numeroRevision: datos.numeroRevision || '1',
+      numero_revision: Number(datos.numeroRevision) || 1,
       facilitador,
-      validacionAdmin: '',
+      validacion_admin: '',
       comentarios: '',
-      semanaVidusa,
-      creadoPor: session.correo,
-      creadoEn: new Date().toISOString(),
+      semana_vidusa: semanaVidusa,
+      creado_por: session.id,
     };
 
-    dtus.push(dtu);
-    guardarDTUs(dtus);
-    registrarBitacora(
+    const { data, error } = await supabaseClient.from('dtus').insert(fila).select().single();
+    if (error) throw error;
+    const dtu = filaAObjetoDTU(data);
+
+    await this.registrarBitacora(
       session,
       'Crear solicitud',
       `${dtu.folio}: ${dtu.fraccionamiento}, CC ${dtu.cc || '—'}, Mz ${dtu.manzana || '—'}, Lt ${dtu.lote || '—'}, ` +
@@ -235,38 +241,35 @@ const Store = {
   // El dueño (Residente/Superintendente que la creó) o Admin corrigen los
   // datos base por si se equivocaron al capturar. Si cambia la fecha, se
   // reinicia la Validación (puede que ya no aplique a la nueva fecha).
-  actualizarDTU(id, datos, session) {
-    const dtus = leerDTUs();
-    const idx = dtus.findIndex((d) => d.id === id);
-    if (idx === -1) throw new Error('DTU no encontrado.');
-    const anterior = dtus[idx];
+  async actualizarDTU(id, datos, session) {
+    const anterior = await this.getDTU(id);
+    if (!anterior) throw new Error('DTU no encontrado.');
 
     const fechaCambio = datos.fecha !== anterior.fecha;
-    const otrosDtus = dtus.filter((_, i) => i !== idx);
-    const facilitador = Asignacion.obtenerFacilitador(datos.fraccionamiento, datos.fecha, otrosDtus);
+    const facilitador = await Asignacion.obtenerFacilitador(datos.fraccionamiento, datos.fecha, id);
     const semanaVidusa = SemanaVidusa.buscar(datos.fecha);
 
-    const actualizado = {
-      ...anterior,
+    const fila = {
       fraccionamiento: datos.fraccionamiento || '',
       superintendente: datos.superintendente || '',
       cc: datos.cc || '',
-      diaSolicitado: datos.diaSolicitado || '',
+      dia_solicitado: datos.diaSolicitado || '',
       etapa: datos.etapa || '',
       estatus: datos.estatus || '',
       manzana: datos.manzana || '',
       lote: String(datos.lote || '').slice(0, 2),
       fecha: datos.fecha || '',
-      numeroRevision: datos.numeroRevision || '1',
+      numero_revision: Number(datos.numeroRevision) || 1,
       facilitador,
-      semanaVidusa,
-      validacionAdmin: fechaCambio ? '' : anterior.validacionAdmin,
+      semana_vidusa: semanaVidusa,
+      validacion_admin: fechaCambio ? '' : anterior.validacionAdmin,
       comentarios: fechaCambio ? '' : anterior.comentarios,
     };
 
-    dtus[idx] = actualizado;
-    guardarDTUs(dtus);
-    registrarBitacora(session, 'Editar solicitud', `${actualizado.folio}: ${describirCambios(anterior, actualizado)}`);
+    const { data, error } = await supabaseClient.from('dtus').update(fila).eq('id', id).select().single();
+    if (error) throw error;
+    const actualizado = filaAObjetoDTU(data);
+    await this.registrarBitacora(session, 'Editar solicitud', `${actualizado.folio}: ${describirCambios(anterior, actualizado)}`);
     return actualizado;
   },
 };
