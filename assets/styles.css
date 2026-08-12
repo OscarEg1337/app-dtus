@@ -402,9 +402,13 @@ h1, h2, h3,
   border-radius: 10px;
   padding: 10px 12px;
   cursor: pointer;
-  transition: border-color 0.15s;
+  transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
 }
-.tarjeta-dtu:hover { border-color: var(--verde-brillante); }
+.tarjeta-dtu:hover {
+  border-color: var(--verde-brillante);
+  box-shadow: 0 0 0 1px var(--verde-brillante), 0 0 14px rgba(90, 197, 92, 0.3);
+  transform: translateY(-1px);
+}
 
 .tarjeta-dtu__top {
   display: flex;
@@ -497,6 +501,11 @@ h1, h2, h3,
   border: 1px solid var(--borde);
   border-radius: 14px;
   padding: 22px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.card:hover {
+  border-color: var(--verde-brillante);
+  box-shadow: 0 0 0 1px var(--verde-brillante), 0 0 18px rgba(90, 197, 92, 0.25);
 }
 
 .card h2, .card h3 { color: var(--blanco); }
@@ -718,6 +727,12 @@ h1, h2, h3,
   border-radius: 12px;
   padding: 18px;
   text-align: center;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+}
+.kpi-stat:hover {
+  border-color: var(--verde-brillante);
+  box-shadow: 0 0 0 1px var(--verde-brillante), 0 0 16px rgba(90, 197, 92, 0.3);
+  transform: translateY(-2px);
 }
 
 .kpi-stat--acento {
@@ -855,6 +870,11 @@ h1, h2, h3,
   text-align: center;
   font-size: 11px;
   font-weight: 700;
+  transition: box-shadow 0.1s ease;
+}
+.kpi-tabla tbody tr:hover .kpi-tabla__fila-header,
+.kpi-tabla tbody tr:hover .kpi-tabla__celda {
+  box-shadow: inset 0 0 0 1.5px var(--verde-brillante);
 }
 
 .kpi-tabla__celda--vacia { background: var(--panel); }
@@ -870,6 +890,11 @@ h1, h2, h3,
   text-align: center;
   font-size: 13px;
   white-space: nowrap;
+  transition: box-shadow 0.1s ease;
+}
+
+.pivot-tabla tbody tr:not(.pivot-tabla__total-row):hover td {
+  box-shadow: inset 0 0 0 1.5px var(--verde-brillante);
 }
 
 .pivot-tabla thead th {
@@ -891,3 +916,85 @@ h1, h2, h3,
 .pivot-tabla__total-row { background: var(--verde-profundo); font-weight: 800; }
 .pivot-tabla__total-row td { color: var(--verde-brillante); }
 .pivot-tabla__total-row td:first-child { color: var(--blanco); }
+
+.btn-pdf {
+  padding: 8px 14px;
+  border: 1px solid var(--verde-brillante);
+  border-radius: 8px;
+  background: var(--panel);
+  color: var(--verde-brillante);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, box-shadow 0.15s;
+}
+.btn-pdf:hover {
+  background: var(--verde-brillante);
+  color: var(--bg-2);
+  box-shadow: 0 0 14px rgba(90, 197, 92, 0.4);
+}
+
+/* ---- Descargar PDF: imprime solo el Dashboard, en claro, sin la barra
+   superior ni nada más de la app (window.print() del botón "Descargar
+   PDF" — el usuario elige "Guardar como PDF" en el diálogo de impresión). */
+@media print {
+  body * { visibility: hidden; }
+  #dashboard-kpi-imprimible, #dashboard-kpi-imprimible * { visibility: visible; }
+  #dashboard-kpi-imprimible {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    background: #ffffff;
+    color: #111111;
+  }
+  #dashboard-kpi-imprimible .card,
+  #dashboard-kpi-imprimible .kpi-stat,
+  #dashboard-kpi-imprimible .kpi-semana-card {
+    background: #ffffff;
+    border: 1px solid #ccc;
+    box-shadow: none;
+    color: #111111;
+    break-inside: avoid;
+  }
+  #dashboard-kpi-imprimible h2,
+  #dashboard-kpi-imprimible p,
+  #dashboard-kpi-imprimible label,
+  #dashboard-kpi-imprimible .kpi-stat__label,
+  #dashboard-kpi-imprimible .kpi-stat__num,
+  #dashboard-kpi-imprimible .dato-secundario {
+    color: #111111 !important;
+  }
+  /* Encabezados de fila/columna (fondo oscuro var(--bg-2) en pantalla) —
+     en el PDF necesitan fondo Y texto claros, no solo el texto, si no el
+     texto queda oscuro sobre fondo oscuro y no se lee nada. */
+  #dashboard-kpi-imprimible .kpi-tabla__fila-header,
+  #dashboard-kpi-imprimible .kpi-tabla__esquina,
+  #dashboard-kpi-imprimible .kpi-tabla thead th,
+  #dashboard-kpi-imprimible .pivot-tabla td:first-child,
+  #dashboard-kpi-imprimible .pivot-tabla th:first-child,
+  #dashboard-kpi-imprimible .kpi-tabla__celda--vacia {
+    background: #f0f0f0 !important;
+    color: #111111 !important;
+  }
+  #dashboard-kpi-imprimible .pivot-tabla thead th {
+    background: #333333 !important;
+    color: #ffffff !important;
+  }
+  #dashboard-kpi-imprimible .pivot-tabla__total-row,
+  #dashboard-kpi-imprimible .pivot-tabla__total-row td {
+    background: #333333 !important;
+    color: #ffffff !important;
+  }
+  #dashboard-kpi-imprimible .pivot-tabla__total-col {
+    color: #111111 !important;
+    font-weight: 800;
+  }
+  #dashboard-kpi-imprimible .kpi-tabla th,
+  #dashboard-kpi-imprimible .kpi-tabla td,
+  #dashboard-kpi-imprimible .pivot-tabla th,
+  #dashboard-kpi-imprimible .pivot-tabla td {
+    border-color: #ccc !important;
+  }
+  #btn-descargar-pdf { display: none; }
+}

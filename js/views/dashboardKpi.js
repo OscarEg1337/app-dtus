@@ -149,9 +149,13 @@ async function renderDashboardKpi(session) {
   const pivotValidacion = dashKpiSemanaSel ? calcularPivotValidacion(dtus, dashKpiSemanaSel) : null;
 
   contentEl.innerHTML = `
-    <div class="dashboard-kpi-layout">
-      <div class="card">
-        <h2>Cancelación por Fraccionamiento y Semana</h2>
+    <div id="dashboard-kpi-imprimible">
+      <div style="display:flex;justify-content:flex-end;margin-bottom:12px">
+        <button type="button" id="btn-descargar-pdf" class="btn-pdf">📄 Descargar PDF</button>
+      </div>
+      <div class="dashboard-kpi-layout">
+        <div class="card">
+          <h2>Cancelación por Fraccionamiento y Semana</h2>
         ${
           semanas.length === 0
             ? '<p>Todavía no hay DTUs asignados para calcular el KPI.</p>'
@@ -309,8 +313,13 @@ async function renderDashboardKpi(session) {
       </div>
       `
       }
+      </div>
     </div>
   `;
+
+  document.getElementById('btn-descargar-pdf').addEventListener('click', () => {
+    window.print();
+  });
 
   document.getElementById('kpi-semana-select').addEventListener('change', (e) => {
     dashKpiSemanaSel = e.target.value;
