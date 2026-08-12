@@ -68,7 +68,7 @@ function describirCambios(anterior, actualizado) {
 
 const Store = {
   getFraccionamientos() {
-    return FRACCIONAMIENTOS_SEED;
+    return [...FRACCIONAMIENTOS_SEED].sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
   },
 
   getFraccionamientoPorNombre(nombre) {
