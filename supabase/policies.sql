@@ -24,6 +24,17 @@ as $$
   select rol from public.profiles where id = auth.uid();
 $$;
 
+-- Facilitador "general": ve y valida cualquier DTU, no solo los suyos.
+create or replace function mi_facilitador_general()
+returns boolean
+language sql
+security definer
+stable
+set search_path = public
+as $$
+  select coalesce(facilitador_general, false) from public.profiles where id = auth.uid();
+$$;
+
 -- ============================================================
 -- 2. profiles
 -- ============================================================
@@ -55,6 +66,12 @@ create policy "facilitador ve lo suyo"
     and facilitador = (select nombre from profiles where id = auth.uid())
   );
 
+-- SELECT: Facilitador general ve TODO (excepción para quien coordina a
+-- todos los Facilitadores).
+create policy "facilitador general ve todo"
+  on dtus for select
+  using (mi_rol() = 'facilitador' and mi_facilitador_general());
+
 -- SELECT: Admin/Analista ven todo
 create policy "admin y analista ven todo"
   on dtus for select
@@ -74,11 +91,13 @@ create policy "dueno admin o facilitador asignado edita"
     mi_rol() = 'admin'
     or (mi_rol() in ('residente', 'superintendente') and creado_por = auth.uid())
     or (mi_rol() = 'facilitador' and facilitador = (select nombre from profiles where id = auth.uid()))
+    or (mi_rol() = 'facilitador' and mi_facilitador_general())
   )
   with check (
     mi_rol() = 'admin'
     or (mi_rol() in ('residente', 'superintendente') and creado_por = auth.uid())
     or (mi_rol() = 'facilitador' and facilitador = (select nombre from profiles where id = auth.uid()))
+    or (mi_rol() = 'facilitador' and mi_facilitador_general())
   );
 
 -- DELETE: solo Admin

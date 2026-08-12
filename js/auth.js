@@ -7,12 +7,12 @@
 // refresca cada vez que cambia la sesión real de Supabase (login, logout,
 // o el evento onAuthStateChange que dispara router.js).
 
-let sesionActual = null; // { id, correo, nombre, rol } o null
+let sesionActual = null; // { id, correo, nombre, rol, facilitadorGeneral } o null
 
 async function cargarPerfilEnCache(userId) {
   const { data, error } = await supabaseClient
     .from('profiles')
-    .select('correo, nombre, rol')
+    .select('correo, nombre, rol, facilitador_general')
     .eq('id', userId)
     .single();
 
@@ -20,7 +20,13 @@ async function cargarPerfilEnCache(userId) {
     sesionActual = null;
     return;
   }
-  sesionActual = { id: userId, correo: data.correo, nombre: data.nombre, rol: data.rol };
+  sesionActual = {
+    id: userId,
+    correo: data.correo,
+    nombre: data.nombre,
+    rol: data.rol,
+    facilitadorGeneral: !!data.facilitador_general,
+  };
 }
 
 // Traduce los mensajes de error de Supabase a español, para el usuario.

@@ -9,7 +9,10 @@ async function renderDetalleDTU(id, session) {
   const dtu = await Store.getDTU(id);
   if (!dtu) return;
 
-  const esFacilitadorAsignado = session.rol === 'facilitador' && session.nombre === dtu.facilitador;
+  // El Facilitador general (excepción) puede validar cualquier DTU, no
+  // solo los que le tocan a él por nombre.
+  const esFacilitadorAsignado =
+    session.rol === 'facilitador' && (session.nombre === dtu.facilitador || session.facilitadorGeneral);
   const esAdmin = session.rol === 'admin';
   const puedeEditar = Store.puedeEditar(dtu, session);
   // Cancelar es acción de la obra (dueño del folio), no del Admin — el

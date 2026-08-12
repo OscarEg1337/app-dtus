@@ -10,6 +10,11 @@ create table if not exists profiles (
   correo text not null,
   nombre text not null,
   rol text not null check (rol in ('residente', 'superintendente', 'facilitador', 'admin', 'analista')),
+  -- Excepción para un Facilitador que coordina a todos los demás: ve y
+  -- valida CUALQUIER DTU, no solo los suyos por nombre. Sigue con las
+  -- mismas restricciones de columna que un Facilitador normal (solo
+  -- Validación y Comentarios) — no es lo mismo que Admin.
+  facilitador_general boolean not null default false,
   creado_en timestamptz not null default now()
 );
 
