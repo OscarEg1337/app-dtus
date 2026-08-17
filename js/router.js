@@ -27,6 +27,7 @@ const Router = {
     } else {
       renderLogin();
     }
+    window.__dtuAppListo = true;
   },
 };
 

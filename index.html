@@ -9,7 +9,35 @@
 <body>
 <div id="app"><div class="cargando">Cargando...</div></div>
 
-<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<script>
+  // Red de seguridad: si algo truena al cargar (script bloqueado, sin
+  // internet, red que corta la conexión) ya no se queda pegado en
+  // "Cargando..." para siempre — muestra un mensaje claro con botón de
+  // reintentar. `window.__dtuAppListo` lo marca router.js cuando la app
+  // ya arrancó bien.
+  (function () {
+    var avisado = false;
+    function mostrarError(motivo) {
+      if (avisado || window.__dtuAppListo) return;
+      avisado = true;
+      var app = document.getElementById('app');
+      if (!app) return;
+      app.innerHTML =
+        '<div class="cargando-error">' +
+        '<p>No se pudo cargar la app.</p>' +
+        '<p class="cargando-error__detalle">Verifica tu conexión a internet (prueba con otra red o datos móviles) y que la fecha de tu dispositivo sea correcta.</p>' +
+        '<button id="btn-reintentar-carga" type="button">Reintentar</button>' +
+        '</div>';
+      document.getElementById('btn-reintentar-carga').addEventListener('click', function () {
+        location.reload();
+      });
+    }
+    window.addEventListener('error', function () { mostrarError('error'); }, true);
+    window.addEventListener('unhandledrejection', function () { mostrarError('promesa'); });
+    setTimeout(function () { mostrarError('timeout'); }, 12000);
+  })();
+</script>
+<script src="js/vendor/supabase-js.min.js"></script>
 <script src="js/config.js"></script>
 <script src="js/supabaseClient.js"></script>
 <script src="js/util.js"></script>

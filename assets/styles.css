@@ -55,6 +55,32 @@ h1, h2, h3,
   color: var(--texto-suave);
 }
 
+.cargando-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  height: 100vh;
+  padding: 24px;
+  text-align: center;
+  color: var(--texto-suave);
+}
+.cargando-error p { margin: 0; max-width: 360px; }
+.cargando-error p:first-child { color: #fff; font-size: 18px; font-weight: 600; }
+.cargando-error__detalle { font-size: 13px; }
+.cargando-error button {
+  margin-top: 8px;
+  padding: 10px 24px;
+  border: none;
+  border-radius: 8px;
+  background: var(--verde-brillante);
+  color: var(--bg-2);
+  font-weight: 600;
+  cursor: pointer;
+}
+.cargando-error button:hover { filter: brightness(1.08); }
+
 /* ---- Login ---- */
 .login-screen {
   position: relative;
