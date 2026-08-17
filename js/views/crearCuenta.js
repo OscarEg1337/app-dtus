@@ -33,7 +33,7 @@ function renderCrearCuenta() {
               <label for="cc-rol">Tu rol</label>
               <select id="cc-rol" required>
                 <option value="">Selecciona...</option>
-                <option value="residente">Obra</option>
+                <option value="residente">Residente</option>
                 <option value="supervisor">Supervisor</option>
                 <option value="facilitador">Facilitador</option>
               </select>
