@@ -724,7 +724,7 @@ h1, h2, h3,
   font-weight: 600;
 }
 .pill--operativo { background: rgba(90, 197, 92, 0.18); color: var(--verde-brillante); }
-.pill--cancelado { background: var(--amarillo-fondo); color: var(--amarillo); }
+.pill--cancelado { background: var(--rojo-fondo); color: var(--rojo); }
 .pill--paso { background: rgba(90, 197, 92, 0.18); color: var(--verde-brillante); }
 .pill--nopaso { background: var(--rojo-fondo); color: var(--rojo); }
 .pill--proceso { background: var(--amarillo-fondo); color: var(--amarillo); }
