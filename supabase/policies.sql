@@ -53,10 +53,11 @@ create policy "admin lee todos los perfiles"
 -- 3. dtus
 -- ============================================================
 
--- SELECT: Obra ve solo lo suyo
+-- SELECT: Superintendente ve solo lo suyo (Residente y Supervisor ya no
+-- entran aquí: ver policy "admin analista residente y supervisor ven todo").
 create policy "obra ve sus propios dtus"
   on dtus for select
-  using (mi_rol() in ('residente', 'superintendente', 'supervisor') and creado_por = auth.uid());
+  using (mi_rol() = 'superintendente' and creado_por = auth.uid());
 
 -- SELECT: Facilitador ve solo lo que le toca (por nombre, igual que hoy)
 create policy "facilitador ve lo suyo"
@@ -72,10 +73,12 @@ create policy "facilitador general ve todo"
   on dtus for select
   using (mi_rol() = 'facilitador' and mi_facilitador_general());
 
--- SELECT: Admin/Analista ven todo
-create policy "admin y analista ven todo"
+-- SELECT: Admin/Analista ven todo, y Residente/Supervisor también ven
+-- todo (antes solo veían lo que ellos creaban; solo pueden EDITAR lo
+-- suyo, ver policies de insert/update más abajo, que no cambiaron).
+create policy "admin analista residente y supervisor ven todo"
   on dtus for select
-  using (mi_rol() in ('admin', 'analista'));
+  using (mi_rol() in ('admin', 'analista', 'residente', 'supervisor'));
 
 -- INSERT: Obra crea solo a su propio nombre
 create policy "obra crea sus propios dtus"

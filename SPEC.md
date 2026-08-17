@@ -49,7 +49,8 @@ expuestas de App Web URBA).
 
 ## 3. Roles
 
-- **Residente** / **Superintendente** / **Supervisor**: crean y editan sus solicitudes (campos base) — pueden corregir errores de captura mientras sean el dueño (`creadoPor`). Supervisor tiene exactamente los mismos permisos que Residente/Obra; existe como rol aparte solo para que no compartan una misma cuenta.
+- **Residente** / **Supervisor**: ven TODOS los DTUs (tablero y calendario), pero solo pueden crear y editar los suyos — pueden corregir errores de captura mientras sean el dueño (`creadoPor`). Supervisor tiene exactamente los mismos permisos que Residente; existe como rol aparte solo para que no compartan una misma cuenta.
+- **Superintendente**: ve y edita solo sus propias solicitudes (no se autoasigna por registro, hoy sin usuarios activos).
 - **Facilitador**: ve solo los DTUs asignados a él/ella; captura Validación + Comentarios.
 - **Admin** (Jefe / Coordinador): ve todo; puede editar cualquier solicitud, reasignar el Facilitador de cualquier DTU, y consultar la Bitácora.
 - **Analista**: solo lectura de todo.
@@ -159,8 +160,9 @@ distinguirse del fondo oscuro de la app. Tres filtros combinables:
 una tarjeta con Fraccionamiento, CC, Manzana, Lote, Etapa, No. Revisión
 y Facilitador; al hacer clic se abre el mismo detalle (drawer) que desde
 el tablero — mismos permisos de edición/reasignación/eliminación.
-Accesible para todos los roles (cada quien ve su propio alcance, igual
-que en el tablero).
+Accesible para todos los roles, mismo alcance que el tablero: Residente
+y Supervisor ven TODOS los DTUs; Superintendente, Facilitador (no
+general) y el resto siguen con su alcance de siempre (sección 3).
 
 **Reasignar Facilitador (Admin):** el dropdown ofrece TODOS los
 facilitadores del catálogo, no solo los "normales" de ese fraccionamiento
