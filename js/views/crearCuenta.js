@@ -1,7 +1,8 @@
 // crearCuenta.js — registro 100% autoservicio (ver SPEC_MIGRACION_SUPABASE.md
-// sección 1). El usuario elige su propio rol (Obra o Facilitador — Admin
-// nunca es opción aquí) y su propia contraseña. El dominio @vidusa.com y
-// el rol se validan en el trigger de la base de datos, no solo aquí.
+// sección 1). El usuario elige su propio rol (Obra, Supervisor o
+// Facilitador — Admin nunca es opción aquí) y su propia contraseña. El
+// dominio @vidusa.com y el rol se validan en el trigger de la base de
+// datos, no solo aquí.
 
 function renderCrearCuenta() {
   const app = document.getElementById('app');
@@ -33,6 +34,7 @@ function renderCrearCuenta() {
               <select id="cc-rol" required>
                 <option value="">Selecciona...</option>
                 <option value="residente">Obra</option>
+                <option value="supervisor">Supervisor</option>
                 <option value="facilitador">Facilitador</option>
               </select>
             </div>

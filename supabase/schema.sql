@@ -9,7 +9,7 @@ create table if not exists profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   correo text not null,
   nombre text not null,
-  rol text not null check (rol in ('residente', 'superintendente', 'facilitador', 'admin', 'analista')),
+  rol text not null check (rol in ('residente', 'superintendente', 'supervisor', 'facilitador', 'admin', 'analista')),
   -- Excepción para un Facilitador que coordina a todos los demás: ve y
   -- valida CUALQUIER DTU, no solo los suyos por nombre. Sigue con las
   -- mismas restricciones de columna que un Facilitador normal (solo
@@ -186,8 +186,8 @@ create table if not exists bitacora (
 -- 4. Trigger de alta automática — 100% autoservicio, sin que el Admin
 --    dé de alta a nadie a mano. Al registrarse (auth.users insert):
 --    - el correo DEBE terminar en @vidusa.com, si no, se rechaza
---    - el rol lo elige el usuario en el formulario ("Obra" o
---      "Facilitador", nunca Admin) y viaja en raw_user_meta_data;
+--    - el rol lo elige el usuario en el formulario ("Obra", "Supervisor"
+--      o "Facilitador", nunca Admin) y viaja en raw_user_meta_data;
 --      si viene cualquier otro valor (ej. alguien intentando forzar
 --      "admin" por API directa), también se rechaza.
 --    RAISE EXCEPTION aborta la transacción completa: no queda ni el
@@ -207,8 +207,8 @@ begin
     raise exception 'Solo se permiten cuentas con correo @vidusa.com';
   end if;
 
-  if rol_elegido not in ('residente', 'facilitador') then
-    raise exception 'Rol inválido: debe ser "residente" (Obra) o "facilitador"';
+  if rol_elegido not in ('residente', 'supervisor', 'facilitador') then
+    raise exception 'Rol inválido: debe ser "residente" (Obra), "supervisor" o "facilitador"';
   end if;
 
   insert into public.profiles (id, correo, nombre, rol)

@@ -56,7 +56,7 @@ create policy "admin lee todos los perfiles"
 -- SELECT: Obra ve solo lo suyo
 create policy "obra ve sus propios dtus"
   on dtus for select
-  using (mi_rol() in ('residente', 'superintendente') and creado_por = auth.uid());
+  using (mi_rol() in ('residente', 'superintendente', 'supervisor') and creado_por = auth.uid());
 
 -- SELECT: Facilitador ve solo lo que le toca (por nombre, igual que hoy)
 create policy "facilitador ve lo suyo"
@@ -80,7 +80,7 @@ create policy "admin y analista ven todo"
 -- INSERT: Obra crea solo a su propio nombre
 create policy "obra crea sus propios dtus"
   on dtus for insert
-  with check (mi_rol() in ('residente', 'superintendente') and creado_por = auth.uid());
+  with check (mi_rol() in ('residente', 'superintendente', 'supervisor') and creado_por = auth.uid());
 
 -- UPDATE: dueño (Obra), Admin, o el Facilitador asignado pueden tocar la
 -- fila — el trigger validar_update_dtu() de abajo restringe QUÉ columnas
@@ -89,13 +89,13 @@ create policy "dueno admin o facilitador asignado edita"
   on dtus for update
   using (
     mi_rol() = 'admin'
-    or (mi_rol() in ('residente', 'superintendente') and creado_por = auth.uid())
+    or (mi_rol() in ('residente', 'superintendente', 'supervisor') and creado_por = auth.uid())
     or (mi_rol() = 'facilitador' and facilitador = (select nombre from profiles where id = auth.uid()))
     or (mi_rol() = 'facilitador' and mi_facilitador_general())
   )
   with check (
     mi_rol() = 'admin'
-    or (mi_rol() in ('residente', 'superintendente') and creado_por = auth.uid())
+    or (mi_rol() in ('residente', 'superintendente', 'supervisor') and creado_por = auth.uid())
     or (mi_rol() = 'facilitador' and facilitador = (select nombre from profiles where id = auth.uid()))
     or (mi_rol() = 'facilitador' and mi_facilitador_general())
   );

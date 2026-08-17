@@ -49,7 +49,7 @@ expuestas de App Web URBA).
 
 ## 3. Roles
 
-- **Residente** / **Superintendente**: crean y editan sus solicitudes (campos base) — pueden corregir errores de captura mientras sean el dueño (`creadoPor`).
+- **Residente** / **Superintendente** / **Supervisor**: crean y editan sus solicitudes (campos base) — pueden corregir errores de captura mientras sean el dueño (`creadoPor`). Supervisor tiene exactamente los mismos permisos que Residente/Obra; existe como rol aparte solo para que no compartan una misma cuenta.
 - **Facilitador**: ve solo los DTUs asignados a él/ella; captura Validación + Comentarios.
 - **Admin** (Jefe / Coordinador): ve todo; puede editar cualquier solicitud, reasignar el Facilitador de cualquier DTU, y consultar la Bitácora.
 - **Analista**: solo lectura de todo.

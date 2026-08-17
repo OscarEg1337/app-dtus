@@ -5,6 +5,7 @@
 const ROL_LABELS = {
   residente: 'Residente',
   superintendente: 'Superintendente',
+  supervisor: 'Supervisor',
   facilitador: 'Facilitador',
   admin: 'Admin (Jefe/Coordinador)',
   analista: 'Analista',
@@ -23,7 +24,7 @@ function renderDashboard() {
   if (!semanaSeleccionada) semanaSeleccionada = SemanaVidusa.actual();
 
   const app = document.getElementById('app');
-  const puedeCrear = session.rol === 'residente' || session.rol === 'superintendente';
+  const puedeCrear = session.rol === 'residente' || session.rol === 'superintendente' || session.rol === 'supervisor';
   const esAdmin = session.rol === 'admin';
 
   const puedeVerKpi = esAdmin;

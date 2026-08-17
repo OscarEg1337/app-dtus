@@ -58,8 +58,9 @@ const Auth = {
   },
 
   // Registro 100% autoservicio: el trigger de Supabase valida el dominio
-  // @vidusa.com y que `rol` sea "residente" (Obra) o "facilitador" — si
-  // algo no cuadra, rechaza el registro completo (ver supabase/schema.sql).
+  // @vidusa.com y que `rol` sea "residente" (Obra), "supervisor" o
+  // "facilitador" — si algo no cuadra, rechaza el registro completo
+  // (ver supabase/schema.sql).
   async registrar(correo, password, rol, nombre) {
     const { data, error } = await supabaseClient.auth.signUp({
       email: correo,
