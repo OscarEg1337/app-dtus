@@ -1,5 +1,18 @@
 // router.js — decide qué vista mostrar según si hay sesión activa.
 
+// El link del correo de "Restablecer contraseña" regresa con datos en el
+// fragmento de la URL (#...): type=recovery si es válido, o error=... si
+// ya expiró/ya se usó (son de un solo uso). supabase-js procesa ese
+// fragmento apenas se crea el cliente (antes de que este archivo alcance a
+// engancharse a onAuthStateChange más abajo), así que confiar solo en el
+// evento PASSWORD_RECOVERY es una carrera que a veces se pierde y manda
+// derecho al Dashboard sin pedir la contraseña nueva. Leer el fragmento
+// aquí, ANTES de decidir por sesión, hace que sea confiable siempre.
+function leerHashAuth() {
+  const hash = window.location.hash.startsWith('#') ? window.location.hash.slice(1) : window.location.hash;
+  return new URLSearchParams(hash);
+}
+
 const Router = {
   goTo(vista) {
     if (vista === 'login') {
@@ -21,6 +34,25 @@ const Router = {
   },
 
   async init() {
+    const hashParams = leerHashAuth();
+
+    if (hashParams.get('type') === 'recovery') {
+      renderNuevaPassword();
+      window.__dtuAppListo = true;
+      return;
+    }
+    if (hashParams.get('error')) {
+      const descripcion = (hashParams.get('error_description') || '').replace(/\+/g, ' ');
+      renderLogin(
+        descripcion.includes('expired') || descripcion.includes('invalid')
+          ? 'Ese link para restablecer tu contraseña ya expiró o ya se usó. Pide uno nuevo con "¿Olvidaste tu contraseña?".'
+          : descripcion || 'El link ya no es válido, intenta de nuevo.'
+      );
+      history.replaceState(null, '', window.location.pathname + window.location.search);
+      window.__dtuAppListo = true;
+      return;
+    }
+
     await Auth.sincronizar();
     if (Auth.getSession()) {
       renderDashboard();
