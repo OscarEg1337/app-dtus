@@ -3,6 +3,14 @@
 // SPEC.md sección 7.1). Al elegir Fraccionamiento, el Superintendente se
 // autollena y se muestra una vista previa en vivo del Facilitador.
 //
+// CC / Manzana / Lote son selects en cascada contra el catálogo real
+// (tabla catalogo_ubicaciones en Supabase, ver supabase/migracion_catalogo_ubicaciones.sql):
+// elegir Fraccionamiento filtra los CC posibles; elegir CC filtra las
+// Manzanas; elegir Manzana filtra los Lotes. Etapa se queda como texto
+// libre (no está en el catálogo). Si un DTU viejo ya editado tiene un
+// valor que no está en el catálogo (dato legado/typo), se agrega como
+// opción extra para no perderlo silenciosamente.
+//
 // Validación dura (SPEC.md Fase 7): no se guarda si el "Día solicitado"
 // no coincide con el día real de la "Fecha" — evita el caso real donde
 // alguien captura "Miércoles" con una fecha que en realidad es sábado.
@@ -22,8 +30,54 @@ function opcionesEstatus(session, dtuExistente) {
   return ESTATUS_OPCIONES;
 }
 
-function renderNuevaSolicitud(session, onGuardado, dtuExistente) {
+function ordenNatural(a, b) {
+  return a.localeCompare(b, 'es', { numeric: true });
+}
+
+function opcionesCC(catalogo, fraccionamiento) {
+  const set = new Set();
+  catalogo.forEach((r) => {
+    if (r.fraccionamiento === fraccionamiento) set.add(r.cc);
+  });
+  return [...set].sort(ordenNatural);
+}
+
+function opcionesManzana(catalogo, fraccionamiento, cc) {
+  const set = new Set();
+  catalogo.forEach((r) => {
+    if (r.fraccionamiento === fraccionamiento && r.cc === cc) set.add(r.manzana);
+  });
+  return [...set].sort(ordenNatural);
+}
+
+function opcionesLote(catalogo, fraccionamiento, cc, manzana) {
+  const set = new Set();
+  catalogo.forEach((r) => {
+    if (r.fraccionamiento === fraccionamiento && r.cc === cc && r.manzana === manzana) set.add(r.lote);
+  });
+  return [...set].sort(ordenNatural);
+}
+
+// Redibuja un <select> con `opciones`, seleccionando `valorActual` si
+// viene. Si `valorActual` no está en `opciones` (dato legado que ya no
+// está en el catálogo), se agrega como opción extra para no perderlo.
+function llenarSelect(selectEl, opciones, valorActual, placeholder) {
+  const lista = [...opciones];
+  if (valorActual && !lista.includes(valorActual)) lista.unshift(valorActual);
+  selectEl.innerHTML =
+    `<option value="">${esc(placeholder)}</option>` +
+    lista.map((v) => `<option value="${esc(v)}" ${v === valorActual ? 'selected' : ''}>${esc(v)}</option>`).join('');
+  selectEl.disabled = lista.length === 0;
+}
+
+async function renderNuevaSolicitud(session, onGuardado, dtuExistente) {
   const editando = !!dtuExistente;
+  const catalogo = await Store.getCatalogoUbicaciones();
+
+  const fracInicial = dtuExistente?.fraccionamiento || '';
+  const ccInicial = dtuExistente?.cc || '';
+  const manzanaInicial = dtuExistente?.manzana || '';
+  const loteInicial = dtuExistente?.lote || '';
 
   Drawer.abrir(`
     <h2>${editando ? 'Editar Solicitud' : 'Nueva Solicitud'}</h2>
@@ -36,7 +90,7 @@ function renderNuevaSolicitud(session, onGuardado, dtuExistente) {
             ${Store.getFraccionamientos()
               .map(
                 (f) =>
-                  `<option value="${esc(f.nombre)}" ${f.nombre === dtuExistente?.fraccionamiento ? 'selected' : ''}>${esc(f.nombre)}</option>`
+                  `<option value="${esc(f.nombre)}" ${f.nombre === fracInicial ? 'selected' : ''}>${esc(f.nombre)}</option>`
               )
               .join('')}
           </select>
@@ -47,7 +101,7 @@ function renderNuevaSolicitud(session, onGuardado, dtuExistente) {
         </div>
         <div class="field">
           <label for="ns-cc">CC</label>
-          <input id="ns-cc" type="text" required value="${esc(dtuExistente?.cc || '')}" style="text-transform:uppercase">
+          <select id="ns-cc" required></select>
         </div>
         <div class="field">
           <label for="ns-dia">Día solicitado</label>
@@ -74,11 +128,11 @@ function renderNuevaSolicitud(session, onGuardado, dtuExistente) {
         }
         <div class="field">
           <label for="ns-manzana">Manzana</label>
-          <input id="ns-manzana" type="text" required value="${esc(dtuExistente?.manzana || '')}" style="text-transform:uppercase">
+          <select id="ns-manzana" required></select>
         </div>
         <div class="field">
           <label for="ns-lote">Lote</label>
-          <input id="ns-lote" type="text" maxlength="2" required value="${esc(dtuExistente?.lote || '')}" style="text-transform:uppercase">
+          <select id="ns-lote" required></select>
         </div>
         <div class="field">
           <label for="ns-fecha">Fecha</label>
@@ -106,9 +160,42 @@ function renderNuevaSolicitud(session, onGuardado, dtuExistente) {
   `);
 
   const selFraccionamiento = document.getElementById('ns-fraccionamiento');
+  const selCC = document.getElementById('ns-cc');
+  const selManzana = document.getElementById('ns-manzana');
+  const selLote = document.getElementById('ns-lote');
   const inputSuperintendente = document.getElementById('ns-superintendente');
   const inputFecha = document.getElementById('ns-fecha');
   const previewEl = document.getElementById('ns-facilitador-preview');
+
+  function refrescarCC(valorActual) {
+    if (!selFraccionamiento.value) {
+      llenarSelect(selCC, [], valorActual, 'Elige Fraccionamiento primero');
+      return;
+    }
+    llenarSelect(selCC, opcionesCC(catalogo, selFraccionamiento.value), valorActual, 'Selecciona...');
+  }
+
+  function refrescarManzana(valorActual) {
+    if (!selFraccionamiento.value || !selCC.value) {
+      llenarSelect(selManzana, [], valorActual, 'Elige CC primero');
+      return;
+    }
+    llenarSelect(selManzana, opcionesManzana(catalogo, selFraccionamiento.value, selCC.value), valorActual, 'Selecciona...');
+  }
+
+  function refrescarLote(valorActual) {
+    if (!selFraccionamiento.value || !selCC.value || !selManzana.value) {
+      llenarSelect(selLote, [], valorActual, 'Elige Manzana primero');
+      return;
+    }
+    llenarSelect(selLote, opcionesLote(catalogo, selFraccionamiento.value, selCC.value, selManzana.value), valorActual, 'Selecciona...');
+  }
+
+  // Carga inicial: si viene precargado (editando), respeta los valores
+  // actuales en cada nivel de la cascada.
+  refrescarCC(ccInicial);
+  refrescarManzana(manzanaInicial);
+  refrescarLote(loteInicial);
 
   async function actualizarAutollenado() {
     const frac = Store.getFraccionamientoPorNombre(selFraccionamiento.value);
@@ -123,19 +210,30 @@ function renderNuevaSolicitud(session, onGuardado, dtuExistente) {
     previewEl.textContent = facilitador || 'Sin facilitador disponible para este frente.';
   }
 
-  selFraccionamiento.addEventListener('change', actualizarAutollenado);
+  selFraccionamiento.addEventListener('change', () => {
+    refrescarCC();
+    refrescarManzana();
+    refrescarLote();
+    actualizarAutollenado();
+  });
+  selCC.addEventListener('change', () => {
+    refrescarManzana();
+    refrescarLote();
+  });
+  selManzana.addEventListener('change', () => {
+    refrescarLote();
+  });
   inputFecha.addEventListener('change', actualizarAutollenado);
   if (editando) actualizarAutollenado(); // los campos ya vienen precargados, sin evento 'change'
 
   // Mayúsculas de verdad (no solo visual con CSS) mientras escriben, sin
-  // necesitar Bloq Mayús — conserva la posición del cursor.
-  ['ns-cc', 'ns-etapa', 'ns-manzana', 'ns-lote'].forEach((id) => {
-    const el = document.getElementById(id);
-    el.addEventListener('input', () => {
-      const pos = el.selectionStart;
-      el.value = el.value.toUpperCase();
-      el.setSelectionRange(pos, pos);
-    });
+  // necesitar Bloq Mayús — conserva la posición del cursor. Solo Etapa
+  // sigue siendo texto libre; CC/Manzana/Lote ya son selects del catálogo.
+  const inputEtapa = document.getElementById('ns-etapa');
+  inputEtapa.addEventListener('input', () => {
+    const pos = inputEtapa.selectionStart;
+    inputEtapa.value = inputEtapa.value.toUpperCase();
+    inputEtapa.setSelectionRange(pos, pos);
   });
 
   document.getElementById('form-solicitud').addEventListener('submit', async (e) => {
@@ -148,20 +246,24 @@ function renderNuevaSolicitud(session, onGuardado, dtuExistente) {
     const datos = {
       fraccionamiento: selFraccionamiento.value,
       superintendente: inputSuperintendente.value,
-      cc: document.getElementById('ns-cc').value.trim().toUpperCase(),
+      cc: selCC.value,
       diaSolicitado: document.getElementById('ns-dia').value,
       etapa: document.getElementById('ns-etapa').value.trim().toUpperCase(),
       // Al crear no hay campo Estatus en el formulario — siempre nace
       // Operativo; Cancelado solo se pone editando (o con el botón Cancelar).
       estatus: campoEstatus ? campoEstatus.value : 'Operativo',
-      manzana: document.getElementById('ns-manzana').value.trim().toUpperCase(),
-      lote: document.getElementById('ns-lote').value.trim().toUpperCase(),
+      manzana: selManzana.value,
+      lote: selLote.value,
       fecha: inputFecha.value,
       numeroRevision: document.getElementById('ns-revision').value,
     };
 
     if (!datos.fraccionamiento || !datos.diaSolicitado) {
       errorEl.textContent = 'Completa Fraccionamiento y Día solicitado.';
+      return;
+    }
+    if (!datos.cc || !datos.manzana || !datos.lote) {
+      errorEl.textContent = 'Completa CC, Manzana y Lote.';
       return;
     }
 
@@ -196,6 +298,9 @@ function renderNuevaSolicitud(session, onGuardado, dtuExistente) {
     `;
     if (!editando) {
       e.target.reset();
+      refrescarCC();
+      refrescarManzana();
+      refrescarLote();
       actualizarAutollenado();
     }
     if (onGuardado) onGuardado();

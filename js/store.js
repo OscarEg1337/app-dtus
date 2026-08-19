@@ -88,6 +88,19 @@ const Store = {
     return [...set].sort((a, b) => a.localeCompare(b, 'es'));
   },
 
+  // Catálogo real de CC/Manzana/Lote por Fraccionamiento (tabla
+  // catalogo_ubicaciones en Supabase) — alimenta los selects en cascada de
+  // Nueva Solicitud. Se pide una sola vez y se cachea en memoria: son ~1800
+  // filas fijas, no cambian mientras la sesión está abierta.
+  _catalogoUbicacionesCache: null,
+  async getCatalogoUbicaciones() {
+    if (this._catalogoUbicacionesCache) return this._catalogoUbicacionesCache;
+    const { data, error } = await supabaseClient.from('catalogo_ubicaciones').select('fraccionamiento,cc,manzana,lote');
+    if (error) throw error;
+    this._catalogoUbicacionesCache = data || [];
+    return this._catalogoUbicacionesCache;
+  },
+
   async getTodosDTUs() {
     const { data, error } = await supabaseClient.from('dtus').select('*');
     if (error) throw error;
@@ -215,7 +228,7 @@ const Store = {
       etapa: datos.etapa || '',
       estatus: datos.estatus || '',
       manzana: datos.manzana || '',
-      lote: String(datos.lote || '').slice(0, 2),
+      lote: String(datos.lote || ''),
       fecha: datos.fecha || '',
       numero_revision: Number(datos.numeroRevision) || 1,
       facilitador,
@@ -257,7 +270,7 @@ const Store = {
       etapa: datos.etapa || '',
       estatus: datos.estatus || '',
       manzana: datos.manzana || '',
-      lote: String(datos.lote || '').slice(0, 2),
+      lote: String(datos.lote || ''),
       fecha: datos.fecha || '',
       numero_revision: Number(datos.numeroRevision) || 1,
       facilitador,

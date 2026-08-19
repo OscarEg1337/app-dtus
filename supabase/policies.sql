@@ -8,8 +8,17 @@ alter table profiles enable row level security;
 alter table dtus enable row level security;
 alter table bitacora enable row level security;
 alter table folio_secuencia enable row level security;
+alter table catalogo_ubicaciones enable row level security;
 -- folio_secuencia: sin ninguna policy = nadie la toca directo, solo la
 -- función siguiente_folio() (security definer) que la usa por dentro.
+
+-- catalogo_ubicaciones: catálogo de solo lectura, cualquier usuario
+-- logueado (cualquier rol) lo puede leer para llenar los dropdowns de
+-- Nueva Solicitud. Nadie lo edita desde la UI — solo se actualiza a mano
+-- en el SQL Editor si cambia el catálogo real.
+create policy "cualquier usuario logueado lee el catalogo"
+  on catalogo_ubicaciones for select
+  using (auth.uid() is not null);
 
 -- ============================================================
 -- 1. Helper: el rol del usuario que está haciendo la petición ahora.

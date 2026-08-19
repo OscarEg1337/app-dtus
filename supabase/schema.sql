@@ -19,6 +19,22 @@ create table if not exists profiles (
 );
 
 -- ============================================================
+-- 1.5 catalogo_ubicaciones — catálogo real de CC / Manzana / Lote por
+--     Fraccionamiento, para los dropdowns en cascada de Nueva Solicitud
+--     (Etapa se queda como texto libre). Datos de seed + política RLS:
+--     ver supabase/migracion_catalogo_ubicaciones.sql.
+-- ============================================================
+create table if not exists public.catalogo_ubicaciones (
+  id bigint generated always as identity primary key,
+  fraccionamiento text not null,
+  cc text not null,
+  manzana text not null,
+  lote text not null
+);
+create index if not exists idx_catalogo_ubicaciones_fraccionamiento
+  on public.catalogo_ubicaciones (fraccionamiento);
+
+-- ============================================================
 -- 2. dtus — un registro por solicitud de Dictamen Técnico Único.
 --    Mismos campos que el objeto DTU de la app (js/store.js).
 -- ============================================================
