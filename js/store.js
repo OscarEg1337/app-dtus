@@ -92,12 +92,26 @@ const Store = {
   // catalogo_ubicaciones en Supabase) — alimenta los selects en cascada de
   // Nueva Solicitud. Se pide una sola vez y se cachea en memoria: son ~1800
   // filas fijas, no cambian mientras la sesión está abierta.
+  // Supabase regresa máximo 1000 filas por consulta (límite del proyecto),
+  // así que se pagina con .range() hasta traer todo, si no, los
+  // fraccionamientos que caen después de la fila 1000 se quedan sin CC.
   _catalogoUbicacionesCache: null,
   async getCatalogoUbicaciones() {
     if (this._catalogoUbicacionesCache) return this._catalogoUbicacionesCache;
-    const { data, error } = await supabaseClient.from('catalogo_ubicaciones').select('fraccionamiento,cc,manzana,lote');
-    if (error) throw error;
-    this._catalogoUbicacionesCache = data || [];
+    const PAGINA = 1000;
+    let desde = 0;
+    let todas = [];
+    while (true) {
+      const { data, error } = await supabaseClient
+        .from('catalogo_ubicaciones')
+        .select('fraccionamiento,cc,manzana,lote')
+        .range(desde, desde + PAGINA - 1);
+      if (error) throw error;
+      todas = todas.concat(data || []);
+      if (!data || data.length < PAGINA) break;
+      desde += PAGINA;
+    }
+    this._catalogoUbicacionesCache = todas;
     return this._catalogoUbicacionesCache;
   },
 
