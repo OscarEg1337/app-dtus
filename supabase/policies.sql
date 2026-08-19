@@ -152,6 +152,24 @@ begin
     if new.estatus = 'Cancelado' and old.estatus is distinct from 'Cancelado' then
       raise exception 'El Admin no puede cancelar un DTU — usa Eliminar';
     end if;
+  elsif rol in ('residente', 'superintendente', 'supervisor') then
+    -- Obra (dueño del folio) NO puede aprobarse a sí misma: sin este
+    -- candado, cualquier cuenta de autoservicio podía mandar un PATCH
+    -- directo a la API de Supabase poniendo Validación = "Autorizado" en
+    -- su propio DTU, saltándose por completo la revisión del Facilitador.
+    -- Las únicas dos transiciones legítimas que hace Obra son "Programado"
+    -- (al cambiar la Fecha) y "Cancelado" (al cancelar su solicitud) — el
+    -- resto (En Proceso / Autorizado / Rechazo) es juicio del Facilitador.
+    if old.folio is distinct from new.folio or old.creado_por is distinct from new.creado_por then
+      raise exception 'Obra no puede modificar el Folio ni el dueño del registro';
+    end if;
+    if old.validacion_admin is distinct from new.validacion_admin
+       and new.validacion_admin not in ('Programado', 'Cancelado') then
+      raise exception 'Obra no puede poner esa Validación — eso lo captura el Facilitador';
+    end if;
+    if old.comentarios is distinct from new.comentarios and new.comentarios is distinct from '' then
+      raise exception 'Obra no puede escribir Comentarios del Facilitador';
+    end if;
   end if;
 
   return new;
@@ -162,6 +180,28 @@ drop trigger if exists trg_validar_update_dtu on dtus;
 create trigger trg_validar_update_dtu
   before update on dtus
   for each row execute function validar_update_dtu();
+
+-- Candado de INSERT: un DTU siempre debe nacer en Programado, sin
+-- comentarios — cierra el mismo hueco que el candado de arriba pero para
+-- cuando se crea el registro (antes no había ningún trigger "before
+-- insert", así que un INSERT directo a la API podía traer de fábrica
+-- Validación = "Autorizado").
+create or replace function forzar_valores_iniciales_dtu()
+returns trigger
+language plpgsql
+set search_path = public
+as $$
+begin
+  new.validacion_admin := 'Programado';
+  new.comentarios := '';
+  return new;
+end;
+$$;
+
+drop trigger if exists trg_forzar_valores_iniciales_dtu on dtus;
+create trigger trg_forzar_valores_iniciales_dtu
+  before insert on dtus
+  for each row execute function forzar_valores_iniciales_dtu();
 
 -- ============================================================
 -- 4. bitacora — log inmutable: se inserta, nunca se edita ni se borra.
