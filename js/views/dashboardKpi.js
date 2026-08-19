@@ -126,7 +126,9 @@ function calcularPivotValidacion(dtus, codigoSemana) {
     porFrente[d.fraccionamiento][col] = (porFrente[d.fraccionamiento][col] || 0) + 1;
   });
 
-  const columnas = VALIDACION_COLUMNAS.filter((c) => columnasConDatos.has(c));
+  // Las 4 columnas del flujo siempre se muestran (aunque estén en 0), para
+  // que el avance se vea de un vistazo; Cancelado solo aparece si hay datos.
+  const columnas = VALIDACION_COLUMNAS.filter((c) => c !== 'Cancelado' || columnasConDatos.has(c));
   const frentes = Object.keys(porFrente).sort((a, b) => a.localeCompare(b, 'es'));
 
   const totalesColumna = {};
