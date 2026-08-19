@@ -13,8 +13,20 @@ function leerHashAuth() {
   return new URLSearchParams(hash);
 }
 
+// El link de recuperación deja una sesión temporal activa (así puede
+// funcionar Auth.actualizarPassword). Eso significa que, apenas se
+// establece, Supabase dispara un evento de sesión "normal" además del
+// PASSWORD_RECOVERY — y el manejador de abajo, al ver sesión activa,
+// mandaba directo al Dashboard antes de que el usuario alcanzara a picar
+// nada en la pantalla de "Nueva contraseña". Esta bandera bloquea esos
+// redireccionamientos automáticos mientras se está en ese flujo.
+let enFlujoRecuperacion = false;
+
 const Router = {
   goTo(vista) {
+    // Navegación explícita del usuario (o "Guardar y entrar" tras poner su
+    // contraseña nueva) — ya se puede volver a dejar que la sesión mande.
+    enFlujoRecuperacion = false;
     if (vista === 'login') {
       renderLogin();
       return;
@@ -37,6 +49,7 @@ const Router = {
     const hashParams = leerHashAuth();
 
     if (hashParams.get('type') === 'recovery') {
+      enFlujoRecuperacion = true;
       renderNuevaPassword();
       window.__dtuAppListo = true;
       return;
@@ -74,9 +87,11 @@ document.addEventListener('DOMContentLoaded', () => {
 // usuario entra desde el link de "restablecer contraseña" del correo.
 supabaseClient.auth.onAuthStateChange(async (event, session) => {
   if (event === 'PASSWORD_RECOVERY') {
+    enFlujoRecuperacion = true;
     renderNuevaPassword();
     return;
   }
+  if (enFlujoRecuperacion && event !== 'SIGNED_OUT') return;
   await Auth.sincronizar();
   if (Auth.getSession()) {
     renderDashboard();
