@@ -65,9 +65,10 @@ function pillEstatus(valor) {
 }
 
 function pillValidacion(valor) {
-  if (!valor) return '<span class="pill pill--proceso">Proceso de validación</span>';
-  if (valor === 'Paso el DTU') return '<span class="pill pill--paso">Pasó el DTU</span>';
-  if (valor === 'No paso el DTU') return '<span class="pill pill--nopaso">No pasó el DTU</span>';
+  if (!valor || valor === 'Programado') return '<span class="pill pill--programado">Programado</span>';
+  if (valor === 'En Proceso') return '<span class="pill pill--enproceso">En Proceso</span>';
+  if (valor === 'Autorizado') return '<span class="pill pill--autorizado">Autorizado</span>';
+  if (valor === 'Rechazo') return '<span class="pill pill--rechazo">Rechazo</span>';
   if (valor === 'Cancelado') return '<span class="pill pill--cancelado">Cancelado</span>';
   return `<span class="pill pill--vacio">${esc(valor)}</span>`;
 }

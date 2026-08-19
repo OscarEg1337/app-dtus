@@ -36,7 +36,7 @@ create table if not exists dtus (
   fecha date not null,
   numero_revision smallint not null default 1,
   facilitador text,
-  validacion_admin text check (validacion_admin in ('', 'Cancelado', 'No paso el DTU', 'Paso el DTU')),
+  validacion_admin text check (validacion_admin in ('Programado', 'En Proceso', 'Autorizado', 'Rechazo', 'Cancelado')),
   comentarios text,
   semana_vidusa text,
   creado_por uuid not null references auth.users(id),

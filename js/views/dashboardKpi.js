@@ -63,8 +63,8 @@ let dashKpiSemanaSel = ''; // '' = ninguna semana elegida en el selector
 
 // Resumen de una Semana Vidusa puntual (las 4 tarjetas que aparecen al
 // elegir la semana en el selector):
-// - Realizados: ya tiene Validación capturada por el Facilitador (Paso o No
-//   paso el DTU) — la visita ya ocurrió, sin importar el resultado.
+// - Realizados: ya tiene Validación capturada por el Facilitador (Autorizado
+//   o Rechazo) — la visita ya ocurrió, sin importar el resultado.
 // - Realizados el miércoles: de esos Realizados, cuántos tienen su fecha
 //   programada en el miércoles de esa semana (siempre el `fin` de la
 //   semana, porque el ejercicio Vidusa corre jueves→miércoles).
@@ -87,7 +87,7 @@ function calcularResumenSemana(dtus, codigoSemana) {
 
   deLaSemana.forEach((d) => {
     const cancelado = esDtuCancelado(d);
-    const realizado = d.validacionAdmin === 'Paso el DTU' || d.validacionAdmin === 'No paso el DTU';
+    const realizado = d.validacionAdmin === 'Autorizado' || d.validacionAdmin === 'Rechazo';
     if (cancelado) {
       cancelados += 1;
       canceladosDetalle.push(d);
@@ -104,12 +104,14 @@ function calcularResumenSemana(dtus, codigoSemana) {
 
 // Tabla dinámica Fraccionamiento (fila) × Validación por el administrador
 // (columna) para la Semana Vidusa elegida — cuenta cuántos DTUs cayeron en
-// cada combinación, con fila y columna de "Total general".
-const VALIDACION_COLUMNAS = ['Cancelado', 'Paso el DTU', 'No paso el DTU', 'Proceso de validación'];
+// cada combinación, con fila y columna de "Total general". Las 4 columnas
+// del flujo (Programado → En Proceso → Autorizado/Rechazo) van primero;
+// Cancelado se deja al final porque es aparte del flujo normal.
+const VALIDACION_COLUMNAS = ['Programado', 'En Proceso', 'Autorizado', 'Rechazo', 'Cancelado'];
 
 function etiquetaValidacionColumna(d) {
   if (esDtuCancelado(d)) return 'Cancelado';
-  return d.validacionAdmin || 'Proceso de validación';
+  return d.validacionAdmin || 'Programado';
 }
 
 function calcularPivotValidacion(dtus, codigoSemana) {

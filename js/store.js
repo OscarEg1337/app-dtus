@@ -188,13 +188,13 @@ const Store = {
   async actualizarValidacion(id, validacionAdmin, comentarios, session) {
     const { data, error } = await supabaseClient
       .from('dtus')
-      .update({ validacion_admin: validacionAdmin || '', comentarios: comentarios || '' })
+      .update({ validacion_admin: validacionAdmin || 'Programado', comentarios: comentarios || '' })
       .eq('id', id)
       .select()
       .single();
     if (error) throw error;
     const actualizado = filaAObjetoDTU(data);
-    await this.registrarBitacora(session, 'Capturar Validación', `${actualizado.folio}: "${validacionAdmin || '(vacío)'}"`);
+    await this.registrarBitacora(session, 'Capturar Validación', `${actualizado.folio}: "${validacionAdmin || 'Programado'}"`);
     return actualizado;
   },
 
@@ -219,7 +219,7 @@ const Store = {
       fecha: datos.fecha || '',
       numero_revision: Number(datos.numeroRevision) || 1,
       facilitador,
-      validacion_admin: '',
+      validacion_admin: 'Programado',
       comentarios: '',
       semana_vidusa: semanaVidusa,
       creado_por: session.id,
@@ -262,7 +262,7 @@ const Store = {
       numero_revision: Number(datos.numeroRevision) || 1,
       facilitador,
       semana_vidusa: semanaVidusa,
-      validacion_admin: fechaCambio ? '' : anterior.validacionAdmin,
+      validacion_admin: fechaCambio ? 'Programado' : anterior.validacionAdmin,
       comentarios: fechaCambio ? '' : anterior.comentarios,
     };
 

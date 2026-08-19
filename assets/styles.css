@@ -27,6 +27,8 @@
   --rojo-fondo: rgba(242, 119, 123, 0.16);
   --amarillo: #F2B84B;
   --amarillo-fondo: rgba(242, 184, 75, 0.16);
+  --azul: #5B9DF2;
+  --azul-fondo: rgba(91, 157, 242, 0.16);
 }
 
 * { box-sizing: border-box; }
@@ -736,6 +738,10 @@ h1, h2, h3,
 .calendario__chip:hover .pill--vacio { background: rgba(10, 24, 21, 0.18); }
 .calendario__chip:hover .pill--proceso { background: rgba(10, 24, 21, 0.18); }
 .calendario__chip:hover .pill--operativo { background: rgba(10, 24, 21, 0.18); }
+.calendario__chip:hover .pill--programado { background: rgba(10, 24, 21, 0.18); }
+.calendario__chip:hover .pill--enproceso { background: rgba(10, 24, 21, 0.18); }
+.calendario__chip:hover .pill--autorizado { background: rgba(10, 24, 21, 0.18); }
+.calendario__chip:hover .pill--rechazo { background: rgba(10, 24, 21, 0.18); }
 
 @media (max-width: 720px) {
   .calendario__diasemana, .calendario__grid { grid-template-columns: repeat(7, minmax(38px, 1fr)); font-size: 10px; }
@@ -754,6 +760,10 @@ h1, h2, h3,
 .pill--paso { background: rgba(90, 197, 92, 0.18); color: var(--verde-brillante); }
 .pill--nopaso { background: var(--rojo-fondo); color: var(--rojo); }
 .pill--proceso { background: var(--amarillo-fondo); color: var(--amarillo); }
+.pill--programado { background: var(--azul-fondo); color: var(--azul); }
+.pill--enproceso { background: var(--amarillo-fondo); color: var(--amarillo); }
+.pill--autorizado { background: rgba(90, 197, 92, 0.18); color: var(--verde-brillante); }
+.pill--rechazo { background: var(--rojo-fondo); color: var(--rojo); }
 
 /* ---- Dashboard: matriz de % Cancelación por Fraccionamiento y Semana ---- */
 .dashboard-kpi-layout {

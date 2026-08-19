@@ -41,7 +41,7 @@ expuestas de App Web URBA).
 | fecha | Residente/Superintendente | fecha |
 | numeroRevision | Residente/Superintendente | contador 1-8 |
 | facilitador | **Automático** | editable por Admin (Jefe/Coordinador) |
-| validacionAdmin | Facilitador | Vacío / Cancelado / No paso el DTU / Paso el DTU |
+| validacionAdmin | Facilitador | Programado (azul, default al crear) / En Proceso (amarillo) / Autorizado (verde) / Rechazo (rojo) / Cancelado (rojo) |
 | comentarios | Facilitador | texto libre |
 | semanaVidusa | Automático | formato `2026-WW`, tabla fija de 52 semanas |
 | folio | Automático | `DTU-YYYYMMDD-NNNN` |

@@ -3,7 +3,7 @@
 // captura Validación + Comentarios (Fase 5). El Admin puede además
 // reasignar el Facilitador (Fase 6).
 
-const VALIDACION_OPCIONES = ['', 'Cancelado', 'No paso el DTU', 'Paso el DTU'];
+const VALIDACION_OPCIONES = ['Programado', 'En Proceso', 'Autorizado', 'Rechazo', 'Cancelado'];
 
 async function renderDetalleDTU(id, session) {
   const dtu = await Store.getDTU(id);
@@ -59,7 +59,7 @@ async function renderDetalleDTU(id, session) {
               <label for="dt-validacion">Validación por el administrador</label>
               <select id="dt-validacion">
                 ${VALIDACION_OPCIONES.map(
-                  (v) => `<option value="${v}" ${v === dtu.validacionAdmin ? 'selected' : ''}>${v || 'Proceso de validación'}</option>`
+                  (v) => `<option value="${v}" ${v === (dtu.validacionAdmin || 'Programado') ? 'selected' : ''}>${v}</option>`
                 ).join('')}
               </select>
             </div>
