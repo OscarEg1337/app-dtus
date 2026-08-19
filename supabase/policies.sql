@@ -206,9 +206,19 @@ create trigger trg_forzar_valores_iniciales_dtu
 -- ============================================================
 -- 4. bitacora — log inmutable: se inserta, nunca se edita ni se borra.
 -- ============================================================
+-- usuario_correo/usuario_nombre tienen que coincidir con el perfil real del
+-- que está logueado (no lo que mande el cliente) — si no, cualquier
+-- usuario autenticado podría insertar una entrada de bitácora a mano
+-- (vía API directa) con su propio usuario_id pero un nombre/correo
+-- inventado, ensuciando el registro de auditoría que el Admin trata como
+-- fuente de verdad.
 create policy "cualquier usuario autenticado registra su propia accion"
   on bitacora for insert
-  with check (usuario_id = auth.uid());
+  with check (
+    usuario_id = auth.uid()
+    and usuario_correo = (select correo from profiles where id = auth.uid())
+    and usuario_nombre = (select nombre from profiles where id = auth.uid())
+  );
 
 create policy "solo admin lee la bitacora"
   on bitacora for select
