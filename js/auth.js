@@ -18,6 +18,7 @@ async function cargarPerfilEnCache(userId) {
 
   if (error || !data) {
     sesionActual = null;
+    actualizarUsuarioSentry(null);
     return;
   }
   sesionActual = {
@@ -27,6 +28,7 @@ async function cargarPerfilEnCache(userId) {
     rol: data.rol,
     facilitadorGeneral: !!data.facilitador_general,
   };
+  actualizarUsuarioSentry(sesionActual);
 }
 
 // Traduce los mensajes de error de Supabase a español, para el usuario.
@@ -94,6 +96,7 @@ const Auth = {
   async logout() {
     await supabaseClient.auth.signOut();
     sesionActual = null;
+    actualizarUsuarioSentry(null);
   },
 
   getSession() {

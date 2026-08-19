@@ -115,10 +115,26 @@ const Store = {
     return this._catalogoUbicacionesCache;
   },
 
+  // Igual que getCatalogoUbicaciones: Supabase corta en 1000 filas por
+  // consulta, así que se pagina con .range() hasta traer todo. Sin esto,
+  // en cuanto el histórico de DTUs pase de 1000 registros, los más
+  // viejos (o los más nuevos, según el orden) empezarían a desaparecer
+  // de la vista sin ningún error visible.
   async getTodosDTUs() {
-    const { data, error } = await supabaseClient.from('dtus').select('*');
-    if (error) throw error;
-    return (data || []).map(filaAObjetoDTU);
+    const PAGINA = 1000;
+    let desde = 0;
+    let todas = [];
+    while (true) {
+      const { data, error } = await supabaseClient
+        .from('dtus')
+        .select('*')
+        .range(desde, desde + PAGINA - 1);
+      if (error) throw error;
+      todas = todas.concat(data || []);
+      if (!data || data.length < PAGINA) break;
+      desde += PAGINA;
+    }
+    return todas.map(filaAObjetoDTU);
   },
 
   async getDTU(id) {
