@@ -174,10 +174,13 @@ const Store = {
   // Eliminar, el registro NO se borra: sigue existiendo con
   // Estatus="Cancelado" y sigue contando en el Dashboard. El Admin no
   // puede hacer esto (bloqueado también por RLS, ver supabase/policies.sql).
+  // La Validación del Facilitador se pone en "Cancelado" también, para que
+  // las dos pastillas (Estatus y Validación) siempre digan lo mismo — antes
+  // se podía quedar el DTU como Estatus=Cancelado pero Validación=Programado.
   async cancelarDTU(id, session) {
     const { data, error } = await supabaseClient
       .from('dtus')
-      .update({ estatus: 'Cancelado' })
+      .update({ estatus: 'Cancelado', validacion_admin: 'Cancelado' })
       .eq('id', id)
       .select()
       .single();
@@ -289,7 +292,10 @@ const Store = {
       numero_revision: Number(datos.numeroRevision) || 1,
       facilitador,
       semana_vidusa: semanaVidusa,
-      validacion_admin: fechaCambio ? 'Programado' : anterior.validacionAdmin,
+      // Si Estatus se pone en Cancelado desde aquí (Admin editando), la
+      // Validación del Facilitador se cancela junto con él, para que las
+      // dos pastillas siempre digan lo mismo.
+      validacion_admin: datos.estatus === 'Cancelado' ? 'Cancelado' : fechaCambio ? 'Programado' : anterior.validacionAdmin,
       comentarios: fechaCambio ? '' : anterior.comentarios,
     };
 
