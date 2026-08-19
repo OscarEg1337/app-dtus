@@ -53,7 +53,9 @@ async function renderTableroSemanal(session, semanaCodigo) {
         // agregara la validación día-vs-fecha al formulario). Así la
         // tarjeta siempre aparece en la columna correcta sin depender de
         // que alguien vuelva a guardar el registro para "corregirlo".
-        const delDia = dtus.filter((d) => diaDeSemana(d.fecha) === dia);
+        const delDia = dtus
+          .filter((d) => diaDeSemana(d.fecha) === dia)
+          .sort((a, b) => a.fraccionamiento.localeCompare(b.fraccionamiento, 'es'));
         return `
           <div class="tablero__columna">
             <div class="tablero__columna-header">
