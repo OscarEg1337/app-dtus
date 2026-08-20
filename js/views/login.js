@@ -1,6 +1,6 @@
 // login.js — pantalla de login.
 
-function renderLogin(mensajeInicial) {
+function renderLogin() {
   const app = document.getElementById('app');
   app.innerHTML = `
     <div class="login-screen">
@@ -25,7 +25,7 @@ function renderLogin(mensajeInicial) {
               <label for="login-password">Contraseña</label>
               <input id="login-password" type="password" autocomplete="current-password" placeholder="Contraseña" required>
             </div>
-            <p id="login-error" class="login-error">${esc(mensajeInicial || '')}</p>
+            <p id="login-error" class="login-error"></p>
             <button type="submit" class="btn-primary" id="login-submit">Ingresar</button>
           </form>
 

@@ -41,6 +41,9 @@ function traducirErrorAuth(error) {
   if (msg.includes('@vidusa.com')) return 'Solo se permiten cuentas con correo @vidusa.com.';
   if (msg.includes('Rol inválido')) return error.message;
   if (msg.toLowerCase().includes('password should be')) return 'La contraseña es muy corta (mínimo 6 caracteres).';
+  if (msg.toLowerCase().includes('token has expired') || msg.toLowerCase().includes('invalid') && msg.toLowerCase().includes('otp')) {
+    return 'Ese código ya expiró o no es válido. Pide uno nuevo con "¿Olvidaste tu contraseña?".';
+  }
   return msg || 'Ocurrió un error, intenta de nuevo.';
 }
 
@@ -77,19 +80,29 @@ const Auth = {
     return { ok: true, session: sesionActual };
   },
 
+  // Manda un código de 6 dígitos por correo (no un link) — un link se puede
+  // "gastar" solo con que el escáner de seguridad del correo corporativo lo
+  // abra automáticamente antes que el usuario (nos pasó de verdad con
+  // Microsoft Defender/Safe Links en @vidusa.com); un código no se puede
+  // "abrir" solo con verlo, así que ese problema desaparece por completo.
   async solicitarRestablecerPassword(correo) {
-    const { error } = await supabaseClient.auth.resetPasswordForEmail(correo, {
-      redirectTo: window.location.origin + window.location.pathname,
-    });
+    const { error } = await supabaseClient.auth.resetPasswordForEmail(correo);
     if (error) return { ok: false, error: traducirErrorAuth(error) };
     return { ok: true };
   },
 
-  // Se llama ya con la sesión de recuperación activa (después de que el
-  // usuario entra desde el link del correo).
-  async actualizarPassword(nuevaPassword) {
-    const { error } = await supabaseClient.auth.updateUser({ password: nuevaPassword });
-    if (error) return { ok: false, error: traducirErrorAuth(error) };
+  // Valida el código de 6 dígitos contra el correo (abre una sesión de
+  // recuperación) y de una vez pone la contraseña nueva.
+  async confirmarCodigoRestablecer(correo, codigo, nuevaPassword) {
+    const { error: errorCodigo } = await supabaseClient.auth.verifyOtp({
+      email: correo,
+      token: codigo,
+      type: 'recovery',
+    });
+    if (errorCodigo) return { ok: false, error: traducirErrorAuth(errorCodigo) };
+
+    const { error: errorPassword } = await supabaseClient.auth.updateUser({ password: nuevaPassword });
+    if (errorPassword) return { ok: false, error: traducirErrorAuth(errorPassword) };
     return { ok: true };
   },
 
