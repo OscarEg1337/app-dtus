@@ -46,6 +46,29 @@ const Router = {
   },
 
   async init() {
+    // Link de "restablecer contraseña" nuevo estilo: en vez del link directo
+    // de Supabase (que un escáner de correo corporativo puede "gastar" solo
+    // con abrirlo), el correo trae ?token_hash=...&type=recovery apuntando
+    // a esta misma app — la verificación la hace este código, con
+    // verifyOtp(), no un simple GET pasivo. Así un escáner que solo carga
+    // la página no alcanza a "usar" el token; hace falta que el JS de la
+    // app corra el verifyOtp de verdad.
+    const searchParams = new URLSearchParams(window.location.search);
+    const tokenHash = searchParams.get('token_hash');
+    if (tokenHash && searchParams.get('type') === 'recovery') {
+      enFlujoRecuperacion = true;
+      const { error } = await supabaseClient.auth.verifyOtp({ token_hash: tokenHash, type: 'recovery' });
+      history.replaceState(null, '', window.location.pathname);
+      if (error) {
+        enFlujoRecuperacion = false;
+        renderLogin('Ese link para restablecer tu contraseña ya expiró o ya se usó. Pide uno nuevo con "¿Olvidaste tu contraseña?".');
+      } else {
+        renderNuevaPassword();
+      }
+      window.__dtuAppListo = true;
+      return;
+    }
+
     const hashParams = leerHashAuth();
 
     if (hashParams.get('type') === 'recovery') {
